@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+
+import sys
+import math
+import time
+
+TOTAL_CALLS = 3500
+DURATION_DAY = 8 * 3600
+
+if len(sys.argv) == 3:
+    try:
+        n = int(sys.argv[1])
+        k = int(sys.argv[2])
+    except ValueError:
+        print("Error: n and k must be integers")
+        sys.exit(84)
+    if n < k:
+        print("Error: k must be greater than or equal to n")
+        sys.exit(84)
+    if k < 0:
+        print("Error: n and k must be positive")
+        sys.exit(84)
+    coeff = math.comb(n, k)
+    print(f"{k}-combinations of a set of size {n}:")
+    print(coeff)
+    sys.exit(0)
+elif len(sys.argv) == 2:
+    try:
+        avg_duration = int(sys.argv[1])
+    except ValueError:
+        print("Error: d must be an integer")
+        sys.exit(84)
+else:
+    print("Usage: ./203hotline [n k | d]")
+    sys.exit(84)
+
+max_lines = math.ceil(TOTAL_CALLS / DURATION_DAY)
+binom_prob = []
+poisson_prob = []
+binom_overload = 0
+poisson_overload = 0
+for n in range(0, 51):
+    k = max_lines * n
+    p = avg_duration / DURATION_DAY
+    q = 1 - p
+    binom_coeff = math.comb(TOTAL_CALLS, k)
+    binom_p = binom_coeff * p ** k * q ** (TOTAL_CALLS - k)
+    poisson_lambda = TOTAL_CALLS * p
+    poisson_p = poisson_lambda ** n * math.exp(-poisson_lambda) / math.factorial(n)
+    if (n > 25):
+        binom_overload += binom_p * 100
+        poisson_overload += poisson_p * 100
+    binom_prob.append(binom_p)
+    poisson_prob.append(poisson_p)
+
+print("Binomial distribution:")
+for n, p in enumerate(binom_prob):
+    print(n, end='')
+    print(f" -> {p:.3f}", end='')
+    if (n + 1) % 5 != 0 and n != len(binom_prob) - 1:
+        print('\t', end='')
+    else:
+        print()
+print(f"Overload: {binom_overload:.1f}%")
+binom_start_time = time.time()
+b_time = time.time() - binom_start_time
+print(f"Computation time: {b_time:.2f} ms")
+
+print("\nPoisson distribution:")
+for n, p in enumerate(poisson_prob):
+    print(n, end='')
+    print(f" -> {p:.3f}", end='')
+    if (n + 1) % 5 != 0 and n != len(poisson_prob) - 1:
+        print('\t', end='')
+    else:
+        print()
+print(f"Overload: {poisson_overload:.1f}%")
+
+poisson_start_time = time.time()
+p_time = time.time() - poisson_start_time
+print(f"Computation time: {p_time:.2} ms")

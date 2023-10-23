@@ -1,0 +1,21 @@
+# editor & dust files
+.vscode
+.idea
+__pycache__/
+
+# pdf
+*.pdf
+
+# binary names
+zappy_server
+zappy_ai
+zappy_gui
+
+# binary files
+*.o
+*.out
+*.so
+*.a
+
+# test server
+server_test

@@ -1,0 +1,88 @@
+#!/usr/bin/python3
+
+import re
+import sys
+import math
+from math import *
+
+def f(x):
+    a0 = float(sys.argv[2]); a1 = float(sys.argv[3]); a2 = float(sys.argv[4]); 
+    a3 = float(sys.argv[5]); a4 = float(sys.argv[6]); n = sys.argv[7]
+
+    y = a4 * pow(x, 4) + a3 * pow(x, 3) + a2 * pow(x, 2) + a1 * x + a0
+    return y
+
+def df(x):
+    a0 = float(sys.argv[2]); a1 = float(sys.argv[3]); a2 = float(sys.argv[4]); 
+    a3 = float(sys.argv[5]); a4 = float(sys.argv[6]); n = sys.argv[7]
+    y = 4 * a4 * pow(x, 3) + 3 * a3 * pow(x, 2) + 2 * a2 * x + a1
+    return y
+
+def bisection(args):
+    i = 1
+    x1 = 0
+    x2 = 1
+    x3 = 0
+    n = int(sys.argv[7])
+    if (f(x1) * f(x2) >= 0):
+        sys.exit(84)
+    while (abs(x3 - i) > (10**(-n))):
+        i = x3
+        x3 = (x2 + x1) / 2
+        if (10**n) * x3 % 1 == 0:
+            print("x =", x3)
+        else:
+            print("x = %.*f" % (n, x3))
+        if (f(x1) * f(x3)) < 0:
+            x2 = x3
+        else:
+            x1 = x3
+    sys.exit(0)
+
+def newton(args):
+    x = 0
+    i = 0.5
+    n = int(sys.argv[7])
+    while (abs(x - i) > (10**(-n))):
+        x = i
+        if (10**n) * i % 1 == 0:
+            print("x =", i)
+        else:
+            print("x = %.*f" % (n, i))
+        i = i - (f(i) / df(i))
+    sys.exit(0)
+
+def secant(args):
+    x1 = 0
+    x2 = 1
+    n = int(sys.argv[7])
+    while (abs(x1 - x2) > (10**(-n))):
+        c = x2 - (f(x2) * (x2 - x1) / (f(x2) - f(x1)))
+        if (10**n) * c % 1 == 0:
+            print("x =", c)
+        else:
+            print("x = %.*f" % (n, c))
+        x1 = x2
+        x2 = c
+    sys.exit(0)
+
+
+def main():
+    for arg in sys.argv[1:]:
+        if not arg.lstrip('-+').isdigit():
+            sys.exit(84)
+    if len(sys.argv) != 8:
+        sys.exit(84)
+    if int(sys.argv[7]) < 0:
+        sys.exit(84)
+    if (sys.argv[1] == '1'):
+        bisection(sys.argv)
+    elif (sys.argv[1] == '2'):
+        newton(sys.argv)
+    elif (sys.argv[1] == '3'):
+        secant(sys.argv)
+    else:
+        sys.exit(84)
+
+if __name__ == '__main__':
+    main()

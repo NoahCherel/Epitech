@@ -1,0 +1,130 @@
+#!/usr/bin/python3
+
+import sys
+from math import *
+import math
+
+def translation(args, x, y, matrix ,i):
+    try: vector1, vector2 = float(args[i + 1]), float(args[i + 2])
+    except: sys.exit(84)
+    if len(args) != 6: sys.exit(84)
+    newx, newy = (vector1 + x), (vector2 + y)
+    matrix[0][2] = f'{vector1:.2f}'; matrix[1][2] = f'{vector2:.2f}';
+    print("Translation along vector", f'({vector1:.0f}, {vector2:.0f})')
+    if (6 == len(args)):
+        for k in range(3):
+            for j in range(3):
+                if j == 2:
+                    print(matrix[k][j], end = "")
+                else:
+                    print(matrix[k][j], end = " ")
+            print()
+        print(f'({x:.2f}, {y:.2f})', "=>", f'({newx:.2f}, {newy:.2f})')
+
+
+
+def scaling(args, x, y, matrix, i):
+    try: scale1, scale2 = float(args[i + 1]), float(args[i +2])
+    except: sys.exit(84)
+    if len(args) != 6: sys.exit(84)
+    newx, newy = (x * scale1), (y * scale2)
+    matrix[0][0] = f'{scale1:.2f}'; matrix[1][1] = f'{scale2:.2f}';
+    print("Scaling by factors", f'{scale1:.0f}' " and", f'{scale2:.0f}')
+    if (6 == len(args)):
+        for k in range(3):
+            for j in range(3):
+                if j == 2:
+                    print(matrix[k][j], end = "")
+                else:
+                    print(matrix[k][j], end = " ")
+            print()
+        print(f'({x:.2f}, {y:.2f})', "=>", f'({newx:.2f}, {newy:.2f})')
+
+
+
+def rotation(args, x, y, matrix, i):
+    try: angle1, angle = int(args[i + 1]), int(args[i + 1]);
+    except: sys.exit(84)
+    if len(args) != 5: sys.exit(84)
+    angle *= math.pi / 180
+    a = cos(angle); b = sin(angle); c = sin(angle); d = cos(angle)
+    newx = (x * cos(angle)) - (y * sin(angle))
+    newy = (x * sin(angle)) + (y * cos(angle))
+    matrix[0][0] = f'{a:.2f}'; matrix[0][1] = f'{-b:.2f}'; 
+    matrix[1][0] = f'{c:.2f}'; matrix[1][1] = f'{d:.2f}';
+    print("Rotation by a", angle1, "degree angle")
+    if (5 == len(args)):
+        for k in range(3):
+            for j in range(3):
+                if j == 2:
+                    print(matrix[k][j], end = "")
+                else:
+                    print(matrix[k][j], end = " ")
+            print()
+        print(f'({x:.2f}, {y:.2f})', "=>", f'({newx:.2f}, {newy:.2f})')
+
+
+
+def reflection(args, x, y, matrix, i):
+    try: angle1, angle = int(args[i + 1]), int(args[i + 1]); 
+    except: sys.exit(84)
+    if len(args) != 5: sys.exit(84)
+    angle *= math.pi / 180
+    newx = (x * cos(2 * angle)) + (y * sin(2 * angle))
+    newy = (x * sin(2 * angle)) - (y * cos(2 * angle))
+    a = -cos(2 * angle)
+    if round(a) == -0.00: a = 0
+    matrix[0][0] = f'{cos(angle * 2):.2f}'; matrix[0][1] = f'{sin(2 * angle):.2f}';
+    matrix[1][0] = f'{sin(2 * angle):.2f}'; matrix[1][1] = f'{-cos(2 * angle):.2f}';
+    print("Reflection over an axis with an inclination angle of", angle1,"degrees")
+    if (5 == len(args)):
+        for k in range(3):
+            for j in range(3):
+                if j == 2:
+                    print(matrix[k][j], end = "")
+                else:
+                    print(matrix[k][j], end = " ")
+            print()
+        print(f'({x:.2f}, {y:.2f})', "=>", f'({newx:.2f}, {newy:.2f})')
+
+
+
+def mix(args, x, y, matrix, i):
+    for k in range(3):
+            for j in range(3):
+                if j == 2:
+                    print(matrix[k][j], end = "")
+                else: 
+                    print(matrix[k][j], end = " ")
+            print()
+    print(f'({x:.2f}, {y:.2f})', "=>", f'({x:.2f}, {y:.2f})')
+
+
+
+def main():
+    if len(sys.argv) < 3: sys.exit(84)
+    try: x, y = float(sys.argv[1]), float(sys.argv[2])
+    except: sys.exit(84)
+    i = 0
+    matrix =    [[f'{1.00:.2f}', f'{0.00:.2f}',f'{0.00:.2f}'],
+                [f'{0.00:.2f}', f'{1.00:.2f}', f'{0.00:.2f}'],
+                [f'{0.00:.2f}', f'{0.00:.2f}', f'{1.00:.2f}']] 
+    while i < len(sys.argv):
+        if sys.argv[i] == "-t":
+            translation(sys.argv, x, y, matrix, i)
+        elif sys.argv[i] == "-z":
+            scaling(sys.argv, x, y, matrix, i)
+        elif sys.argv[i] == "-r":
+            rotation(sys.argv, x, y, matrix, i)
+        elif sys.argv[i] == "-s":
+            reflection(sys.argv, x, y, matrix, i)
+        else:
+            if (sys.argv[i] != "-s") & (sys.argv[i] != "-t") & (sys.argv[i] != "-z") & (sys.argv[i] != "-r") & (i == len(sys.argv)):
+                sys.exit(84)
+        i = i + 1  
+    if len(sys.argv) > 6:
+        mix(sys.argv, x, y, matrix, i)     
+
+
+if __name__ == '__main__':
+    main()

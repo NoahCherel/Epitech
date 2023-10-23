@@ -1,0 +1,104 @@
+#!/usr/bin/python3
+
+import sys
+import math
+from math import *
+from typing import Sized
+
+def sphere(args):
+    print("Sphere of radius" ,args[8])
+    print("Line passing through the point", end = ' ')
+    print("(", end = '')
+    print(args[2], end =', '); print(args[3], end =', ')
+    print(args[4], end = ''); print(")", end = ' ')
+    print("and parallel to the vector", end = ' ')
+    print("(", end = ''); print(args[5], end =', '); print(args[6], end =', ')
+    print(args[7], end = ''); print(")")
+    intersection(args)
+    sys.exit(0)
+
+def cylinder(args):
+    print("Cylinder of radius", args[8])
+    print("Line passing through the point", end = ' '); 
+    print("(", end = '')
+    print(args[2], end =', '); print(args[3], end =', ')
+    print(args[4], end = ''); print(")", end = ' ')
+    print("and parallel to the vector", end = ' ')
+    print("(", end = ''); print(args[5], end =', '); print(args[6], end =', ')
+    print(args[7], end = ''); print(")")
+    intersection(args)
+    sys.exit(0)
+
+def cone(args):
+    print("Cone with a", args[8], end = ' '); print ("degree angle")
+    print("Line passing through the point", end = ' '); 
+    print("(", end = '')
+    print(args[2], end =', '); print(args[3], end =', ')
+    print(args[4], end = ''); print(")", end = ' ')
+    print("and parallel to the vector", end = ' ')
+    print("(", end = ''); print(args[5], end =', '); print(args[6], end =', ')
+    print(args[7], end = ''); print(")")
+    intersection(args)
+    sys.exit(0)
+
+def intersection(args):
+    xp = float(args[2]); yp = float(args[3]); zp = float(args[4])
+    xv = float(args[5]); yv = float(args[6]); zv = float(args[7])
+    p = float(args[8]); opt = float(args[1])
+    if opt == 1:
+        dx = xp * xv; dy = yp * yv; dz = zp * zv
+        a  = (xv * xv + yv * yv + zv * zv)
+        b = 2 * (dx + dy + dz)
+        c = xp * xp + yp * yp + zp * zp - p * p
+    if opt == 2:
+        dx = xp * xv; dy = yp * yv; dz = zp * zv
+        a  = (xv * xv + yv * yv)
+        b = 2 * (dx + dy)
+        c = xp * xp + yp * yp - p * p
+    if opt == 3:
+        angle = 90 - p
+        angle = (angle * pi) / 180
+        dx = xp * xv
+        dy = yp * yv
+        dz = zp * zv
+        a = xv * xv + yv * yv - (zv * zv / (tan(angle) * tan(angle)))
+        b = 2 * (dx + dy) - (2 * dz / (tan(angle) * tan(angle)))
+        c = xp * xp + yp * yp - (zp * zp / (tan(angle) * tan(angle)))
+    delta = pow(b, 2) - 4 * (a * c)
+    if delta > 0:
+        t1 = (-b + sqrt(delta)) / (2 * a); t2 = (-b - sqrt(delta)) / (2 * a)
+        x1 = xv * t1 + xp; y1 = yv * t1 + yp; z1 = zv * t1 + zp
+        x2 = xv * t2 + xp; y2 = yv * t2 + yp; z2 = zv * t2 + zp
+        print("2 intersection points:")
+        print("(%.3f," % x1,"%.3f," % y1, ("%.3f)") % z1)
+        print("(%.3f," % x2,"%.3f," % y2, ("%.3f)") % z2)
+    elif delta == 0:
+        if a == 0:
+            print("There is an infinite number of intersection points.")
+            sys.exit(0)
+        t = -b / (2 * a)
+        x = xv * t + xp; y = yv * t + yp; z = zv * t + zp
+        print('1 intersection point:')
+        print("(%.3f," % x,"%.3f," % y, ("%.3f)") % z)
+    elif delta < 0:
+        print("No intersection point.")
+
+def main():
+    if len(sys.argv) == 0 or len(sys.argv) > 9 or len (sys.argv) < 9:
+        sys.exit(84)
+    if sys.argv[1] == '1' or sys.argv[1] == '2':
+        if int(sys.argv[8]) <= 0:
+            sys.exit(84)
+    if sys.argv[8] == 0:
+        sys.exit(84)
+    if (sys.argv[1] < '1' or sys.argv[1] > '3'):
+        sys.exit(84)
+    if (sys.argv[1] == '1'):
+        sphere(sys.argv)
+    elif (sys.argv[1] == '2'):
+        cylinder(sys.argv)
+    elif (sys.argv[1] == '3'):
+        cone(sys.argv)
+
+if __name__ == '__main__':
+    main()

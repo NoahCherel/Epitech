@@ -1,0 +1,36 @@
+---
+- name: upload result.tar
+  become: true
+  unarchive:
+    src: ../../../result.tar
+    dest: /opt/
+
+- name: Upload result.service
+  become: true
+  register: service
+  vars:
+    port: "{{ result_port }}"
+  template:
+    src: ../files/result.service
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install needed packages
+  apt:
+    name: 
+      - nodejs
+      - npm
+    state: present
+    
+- name: Install dependances
+  npm:
+    path: /opt/App/result
+
+- name: Start service
+  become: true
+  systemd:
+    name: result
+    state: restarted
+    enabled: yes

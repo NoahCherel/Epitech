@@ -1,0 +1,18 @@
+[Unit]
+Description=Result Service
+After=network.target
+
+[Service]
+User=root
+Environment=PORT={{ result_port }}
+Environment=POSTGRESQL_USER={{ postgresql_user }}
+Environment=POSTGRESQL_PASSWORD={{ postgresql_pass }}
+Environment=POSTGRESQL_HOST={{ postgresql_host }}
+Environment=POSTGRESQL_PORT={{ postgresql_port }}
+Environment=POSTGRESQL_DB={{ postgresql_db }}
+WorkingDirectory=/opt/App/result
+ExecStart=/usr/bin/node /opt/App/result/server.js
+Restart=always
+RestartSec=10
+[Install]
+WantedBy=multi-user.target

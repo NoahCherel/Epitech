@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+
+import sys
+from math import *
+from random import *
+
+def parsing_c_2(c):
+    A = 0
+    B = 0
+    for i in range(len(c)):
+        if c[i] == "_":
+            A = c[i - 1]
+            B = c[i + 1]
+    list = [A, B]
+    return list
+
+def parsing_c_1(c):
+    A = 0
+    for i in range(len(c)):
+        if c[i] == "_":
+            A = c[i + 1]
+    list = [A]
+    return list
+
+def count_As(str):
+    count = 0
+    for i in range(len(str)):
+        if str[i] == "_":
+            count += 1
+    return count
+
+def help ():
+    print("USAGE")
+    print("    ./201yams d1 d2 d3 d4 d5 c")
+    print("")
+    print("DESCRIPTION")
+    print("    d1    value of the first die (0 if not thrown)")
+    print("    d2    value of the second die (0 if not thrown)")
+    print("    d3    value of the third die (0 if not thrown)")
+    print("    d4    value of the fourth die (0 if not thrown)")
+    print("    d5    value of the fifth die (0 if not thrown)")
+    print("    c     expected combination")
+
+def get_combinations(c):
+    for i in range(len(c)):
+        if c[i] == "_":
+            return c[:i]
+
+def binomiale_law(n, k):
+    return (factorial(n) / (factorial(k) * factorial(n - k))) * pow(1/6, k) * pow(5/6, n - k)
+
+def calc_probability(c, nb, dice):
+    res = 0
+    occ = dice.count(int(nb))
+    if occ >= c:
+        res = 1
+    else:
+        for i in range(c - occ, 5 - occ + 1):
+            res += binomiale_law(5 - occ, i)
+    if res < 0:
+        sys.exit(84)
+    return res
+
+def full_house(dice, A, B):
+    nb_pair = dice.count(int(A))
+    nb_brelan = dice.count(int(B))
+    res = 0
+    if dice.count(int(A)) == 3 and dice.count(int(B)) == 2:
+        res = 1
+        return res
+    elif dice.count(int(A)) == 2 and dice.count(int(B)) == 3:
+        res = 1
+        return res
+    
+    pair = factorial(5 - nb_brelan - nb_pair) / (factorial(3 - nb_pair) * factorial((5 - nb_pair - nb_brelan) - (3 - nb_brelan)))
+    brelan = factorial(2 - nb_pair) / (factorial(2 - nb_pair) * factorial((2 - nb_pair) - (2 - nb_pair)))
+    res = (pair * brelan) / 6**(5 - nb_brelan - nb_pair)
+    return res
+
+def straight(A, dice):
+    prob = 0.0
+    count = 0
+    dice1 = sorted(dice)
+    if dice1 == [1, 2, 3, 4, 5] or dice1 == [2, 3, 4, 5, 6]:
+        prob = 1.0
+        return prob
+    for i in range(0, 5):
+        if dice.count(A) >= 1:
+            count += 1
+        A -= 1
+    if count == 5:
+        prob = 1.0
+    else:
+        prob = (1 / 6**(5 - count)) * factorial(5 - count)
+    if count == 0:
+        prob *= 2
+    return prob
+
+def comb_error_handling(comb, A, B):
+    if comb == "pair":
+        if A == "0":
+            sys.exit(84)
+    elif comb == "three":
+        if A == "0":
+            sys.exit(84)
+    elif comb == "four":
+        if A == "0":
+            sys.exit(84)
+    elif comb == "full":
+        if A == "0" or B == "0":
+            sys.exit(84)
+    elif comb == "straight":
+        if A == "0":
+            sys.exit(84)
+    elif comb == "yams":
+        if A == "0":
+            sys.exit(84)
+
+def calc_probability_2(comb, dice, A, B):
+    comb_error_handling(comb, A, B)
+    if comb == "pair":
+        return calc_probability(2, A, dice)
+    elif comb == "three":
+        return calc_probability(3, A, dice)
+    elif comb == "four":
+        return calc_probability(4, A, dice)
+    elif comb == "full":
+        return full_house(dice, A, B)
+    elif comb == "straight":
+        A = int(A)
+        return straight(A, dice)
+    elif comb == "yams":
+        return calc_probability(5, A, dice)
+
+def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
+        help()
+        sys.exit(0)
+    if len(sys.argv) != 7:
+        sys.exit(84)
+    try:
+        d1 = int(sys.argv[1]); d2 = int(sys.argv[2]); d3 = int(sys.argv[3]); d4 = int(sys.argv[4]); d5 = int(sys.argv[5]); c = str(sys.argv[6])
+    except ValueError:
+        sys.exit(84)
+    if d1 < 0 or d1 > 6 or d2 < 0 or d2 > 6 or d3 < 0 or d3 > 6 or d4 < 0 or d4 > 6 or d5 < 0 or d5 > 6:
+        sys.exit(84)
+    if d1 == 0 or d2 == 0 or d3 == 0 or d4 == 0 or d5 == 0:
+        if d1 != 0 or d2 != 0 or d3 != 0 or d4 != 0 or d5 != 0:
+            sys.exit(84)
+    count = count_As(c)
+    if count == 0:
+        sys.exit(84)
+    if count == 1:
+        parse = parsing_c_1(c); A = parse[0]; B = 0
+    elif count == 2:
+        parse = parsing_c_2(c); A = parse[0]; B = parse[1]
+    else:
+        sys.exit(84)
+    if A == "0" or B == "0":
+        sys.exit(84)
+    C = int(A); D = int(B)
+    if C < 0 or C > 6 or D < 0 or D > 6:
+        sys.exit(84)
+    if A == B:
+        sys.exit(84)
+    dice = [d1, d2, d3, d4, d5]
+    dice = sorted(dice)
+    comb = get_combinations(c)
+    v = calc_probability_2(comb, dice, A, B)
+    v = v * 100
+    if comb == "full":
+        print("Chances to get a " + A + " full of " + B + ": {:.2f}".format(v) + "%")
+    elif comb == "four":
+        print("Chances to get a " + A + " four-of-a-kind: " + "{:.2f}".format(v) + "%")
+    elif comb == "three":
+        print("Chances to get a " + A + " three-of-a-kind: " + "{:.2f}".format(v) + "%")
+    else:
+        print("Chances to get a " + A + ' ' + comb + ": {:.2f}".format(v) + "%")
+    return 0
+
+if __name__ == "__main__":
+    main()

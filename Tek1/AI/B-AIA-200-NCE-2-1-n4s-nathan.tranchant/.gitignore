@@ -1,0 +1,14 @@
+*.out
+*.o
+*.rb
+*.a
+*.pl
+*.gcda
+*.gcno
+vgcore.*
+/.vscode
+/.idea
+.fifo*
+n4s
+pipes.sh
+n4s_buffer

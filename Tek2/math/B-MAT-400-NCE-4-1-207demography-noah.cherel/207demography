@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+
+import sys
+from math import sqrt, pow
+
+DIVISOR_VALUE = 1000000
+
+class Demography:
+
+    def __init__(self, file, params):
+        self.params = params
+        self.country_list = {}
+        self.total_countries = {}
+        self.time = []
+        self.csv(file)
+        if len(self.country_list) != len(params):
+            exit(84)
+
+    def values_country_set(self, data):
+        values = []
+        for value in data[2:]:
+            try:
+                values.append(int(value))
+            except ValueError:
+                exit(84)
+        self.country_list[data[1]] = {data[0]: values}
+
+    def csv(self, file):
+        def read_lines(file):
+            try:
+                with open(file) as f:
+                    return f.readlines()
+            except FileNotFoundError:
+                exit(84)
+        def extract_time_data(lines):
+            time = None
+            for line in lines:
+                data = line.split(";")
+                if "Country Code" in data:
+                    time = [int(value) for value in data[2:]]
+            return time
+        def extract_country_data(lines, params):
+            country_list = {}
+            for line in lines:
+                data = line.split(";")
+                if data[1] in params:
+                    country_code = data[0]
+                    if country_code not in country_list:
+                        country_list[country_code] = {"values": []}
+                    country_list[country_code]["values"].extend(map(int, data[2:]))
+            return country_list
+        def compute_total_countries(country_list):
+            total_countries = {}
+            for key, value in country_list.items():
+                for i, val in enumerate(value["values"]):
+                    if i not in total_countries:
+                        total_countries[i] = 0
+                    total_countries[i] += val
+            return {"TTC": {"total_countries": list(total_countries.values())}}
+        lines = read_lines(file)
+        self.time = extract_time_data(lines)
+        self.country_list = extract_country_data(lines, self.params)
+        self.total_countries = compute_total_countries(self.country_list)
+
+    def calculate_ab(self, avg, time_avg, fit):
+        def calculate_divid_total(value, i, avg, time_avg, fit):
+            if fit == 1:
+                dist = self.time[i] - time_avg
+                return (value - avg) * dist
+            elif fit == 2:
+                dist = value - avg
+                return (self.time[i] - time_avg) * dist
+            else:
+                exit(84)
+        def calculate_divis_total(value, i, avg, time_avg, fit):
+            if fit == 1:
+                dist = self.time[i] - time_avg
+            elif fit == 2:
+                dist = value - avg
+            else:
+                exit(84)
+            return dist ** 2
+        divid_total = 0
+        divis_total = 0
+        for key, value in self.total_countries.items():
+            for i, val in enumerate(list(value.values())[0]):
+                divid_total += calculate_divid_total(val, i, avg, time_avg, fit)
+                divis_total += calculate_divis_total(val, i, avg, time_avg, fit)
+        if divis_total == 0:
+            return 0
+        else:
+            a = divid_total / divis_total
+            if fit == 1:
+                b = avg - a * time_avg
+                return a, b
+            elif fit == 2:
+                b = time_avg - a * avg
+                return a, b
+            else:
+                exit(84)
+
+    def rootMeanSquare(self, fit):
+        divid_total = 0
+        divis_total = len(self.time)
+        for i in range(len(self.time)):
+            sum_every_time = sum(list(value.values())[0][i] for value in self.total_countries.values())
+            if fit == 1:
+                divid_total += (self.a_Fit1 * self.time[i] + self.b_Fit1 - sum_every_time) ** 2
+            elif fit == 2:
+                try:
+                    divid_total += ((self.time[i] - self.b_Fit2) / self.a_Fit2 - sum_every_time) ** 2
+                except ZeroDivisionError:
+                    pass
+        if divis_total == 0:
+            return 0
+        else:
+            return sqrt(divid_total / divis_total)
+    
+    def calculatePrediction(self, fit):
+        predictions = {
+            1: lambda: self.a_Fit1 * 2050 + self.b_Fit1,
+            2: lambda: (2050 - self.b_Fit2) / self.a_Fit2 if hasattr(self, 'a_Fit2') and hasattr(self, 'b_Fit2') else 0
+        }
+        return predictions.get(fit, lambda: None)()
+
+    def avg(self):
+        values = []
+        for country_data in self.total_countries.values():
+            data = list(country_data.values())[0]
+            if len(data) != len(self.time):
+                exit(84)
+            values.extend(data)
+        if not values:
+            return 0
+        return sum(values) / len(values)
+    
+    def calculate_time_average(self):
+        try:
+            return sum(self.time) / len(self.time)
+        except ZeroDivisionError:
+            return 0
+
+    def calc(self):
+        timeavg = self.calculate_time_average()
+        avg = self.avg()
+        (self.a_Fit1, self.b_Fit1) = self.calculate_ab(avg, timeavg, 1)
+        self.RMS_Fit1 = self.rootMeanSquare(1)
+        self.popFit1 = self.calculatePrediction(1)
+        (self.a_Fit2, self.b_Fit2) = self.calculate_ab(avg, timeavg, 2)
+        self.RMS_Fit2 = self.rootMeanSquare(2)
+        self.popFit2 = self.calculatePrediction(2)
+
+    def print_countries(self):
+        nb_country = len(self.country_list)
+        i = 0
+        print("Country: ", end='')
+        for key, value in self.country_list.items():
+            if (i + 1 != nb_country):
+                print(str(list(value.keys())).strip("['']"), end=", ")
+            else:
+                print(str(list(value.keys())).strip("['']"))
+            i += 1
+
+    def print_fit1(self):
+        print("Fit1")
+        print("\tY = {:.2f} X - {:.2f}".format(self.a_Fit1 / DIVISOR_VALUE, abs(self.b_Fit1 / DIVISOR_VALUE)))
+        print("\tRoot-mean-square deviation: {:.2f}".format(self.RMS_Fit1 / DIVISOR_VALUE))
+        print("\tPopulation in 2050: {:.2f}".format(self.popFit1 / DIVISOR_VALUE))
+
+    def print_fit2(self):
+        print("Fit2")
+        print("\tX = {:.2f} Y + {:.2f}".format(self.a_Fit2 * DIVISOR_VALUE, abs(self.b_Fit2)))
+        print("\tRoot-mean-square deviation: {:.2f}".format(self.RMS_Fit2 / DIVISOR_VALUE))
+        print("\tPopulation in 2050: {:.2f}".format(self.popFit2 / DIVISOR_VALUE))
+
+    def print_correlation(self):
+        try:
+            print("Correlation: {:.4f}".format(self.RMS_Fit1 / self.RMS_Fit2))
+        except:
+            print("Correlation: {:.4f}".format(0))
+    
+    def disp(self):
+        self.print_countries()
+        self.print_fit1()
+        self.print_fit2()
+        self.print_correlation()
+
+def help():
+    print("USAGE\n\t./207demography code [...]\n")
+    print("DESCRIPTION\n\tcode\tcountry code")
+    exit(0)
+
+def checkparams(nb_params: int):
+    for arg in sys.argv[1:nb_params]:
+        if not arg.isupper() or any(char.isdigit() for char in arg):
+            sys.exit(84)
+
+def main():
+    nb_params = len(sys.argv)
+    if (nb_params == 1):
+        exit(84)
+    if (nb_params == 2 and sys.argv[1] == "-h"):
+        help()
+    else:
+        checkparams(nb_params)
+        demography = Demography("207demography_data.csv", sys.argv[1:])
+        demography.calc()
+        demography.disp()
+
+if __name__ == "__main__":
+    main()

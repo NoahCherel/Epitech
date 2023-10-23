@@ -1,0 +1,119 @@
+#!/usr/bin/python3
+
+import sys
+import math
+from math import *
+
+def getKeyMatrix(args):
+    try: key = args[2]
+    except: sys.exit(84)
+    if len(key) == 0: 
+        sys.exit(84)
+    print("Key matrix:")
+    
+    if len(key) < 5:
+        KeyMatrix = [[0 for l in range(2)] for l in range(2)];
+        for i in range(len(key)):
+            KeyMatrix[i // len(KeyMatrix)][i % len(KeyMatrix)] = ord(key[i])
+        for k in range(2):
+            for j in range(2):
+                if j == 1 and k == 0:
+                    print(KeyMatrix[k][j], end = "\n")
+                elif k == 1 and j == 1:
+                    print(KeyMatrix[k][j])
+                else:
+                    print(KeyMatrix[k][j], end = "\t")
+        print()
+        print()
+
+
+    if len(key) > 5:
+        KeyMatrix = [[0 for l in range(3)] for l in range(3)]
+        for i in range(len(key)):
+            KeyMatrix[i // 3][i % 3] = ord(key[i])
+        for k in range(3):
+            for j in range(3):
+                if j == 2 and (k == 0 or k == 1):
+                    print(KeyMatrix[k][j], end = "\n")
+                elif j == 2 and k == 2:
+                    print(KeyMatrix[k][j])
+                else:
+                    print(KeyMatrix[k][j], end = "\t")
+        print()
+    return (0)
+
+
+def encryption(args):
+    try: message = args[1] 
+    except: sys.exit(84)
+    print("Encrypted message:")
+    key = args[2]
+
+    
+    if len (key) <= 4:
+        KeyMatrix = [[0 for l in range(2)] for l in range(2)]
+        cipher = [[0 for l in range(2)] for l in range(len(message))]
+        for i in range(len(key)):
+            KeyMatrix[i // 2][i % 2] = ord(key[i])
+        EncryptionMatrix = [[0 for l in range(2)]
+        for l in range(math.ceil(len(message) / 2))]
+        for i in range(len(message)):
+            EncryptionMatrix[i // 2][i % 2] = ord(message[i])
+        for i in range(len(EncryptionMatrix)):
+            for j in range(2):
+                cipher[i][j] = 0
+                for k in range(2):
+                    cipher[i][j] += EncryptionMatrix[i][k] * KeyMatrix[k][j]
+        for i in range(len(EncryptionMatrix)):
+            for j in range(2):
+                if i == (len(EncryptionMatrix) - 1) and j == 1:
+                    print(cipher[i][j])
+                else:
+                    print(cipher[i][j], end = " ")
+        sys.exit(0)
+    
+    if len(key) > 4:
+        KeyMatrix = [[0 for l in range(3)] for l in range(3)]
+        cipher = [[0 for l in range(3)] for l in range(len(message))]
+
+        for i in range(len(key)):
+            KeyMatrix[i // 3][i % 3] = ord(key[i])
+
+        EncryptionMatrix = [[0 for l in range(3)]
+        for l in range(math.ceil(len(message) / 3))]
+
+        for i in range(len(message)):
+            EncryptionMatrix[i // 3][i % 3] = ord(message[i])
+
+        for i in range(len(EncryptionMatrix)):
+            for j in range(3):
+                cipher[i][j] = 0
+                for k in range(3):
+                    cipher[i][j] += EncryptionMatrix[i][k] * KeyMatrix[k][j]
+        for i in range(len(EncryptionMatrix)):
+            for j in range(3):
+                if i == (len(EncryptionMatrix) - 1) and j == 2:
+                    print(cipher[i][j], end = "\n")
+                else:
+                    print(cipher[i][j], end = " ")
+        sys.exit(0)
+
+def decription(args):
+    print("Key matrix:")
+    print("Decrypted message:")
+    return (0)
+
+def main():
+    if len(sys.argv) != 4: sys.exit(84)
+    if sys.argv[3] == '0':
+        getKeyMatrix(sys.argv)
+        encryption(sys.argv)
+        sys.exit(0)
+    if sys.argv[3] == '1':
+        decription(sys.argv)
+        sys.exit(0)
+    else:
+        sys.exit(84)
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,56 @@
+- name: Upload worker.tar
+  become: true
+  register: worker
+  unarchive:
+    src: ../../../worker.tar
+    dest: /home/
+
+- name: Copy worker
+  copy: 
+    remote_src: True 
+    src: /home/App/worker
+    dest: /opt
+
+- name: Upload .service
+  become: true
+  register: service
+  template:
+    src: ../files/worker.service
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install needed packages
+  become: true
+  apt:
+    state: present
+    update_cache: yes
+    name: 
+      - openjdk-11-jdk
+      - maven
+      - default-jdk
+      - default-jre
+
+- name: Build project with Maven
+  command: mvn clean package -f /opt/worker/pom.xml
+  register: maven
+  args:
+    chdir: /opt/worker
+
+- name: Copy .jar files
+  register: copy
+  copy: 
+    remote_src: True 
+    src: "{{ item }}"
+    dest: /opt
+  loop:
+    - /opt/worker/target/worker.jar
+    - /opt/worker/target/worker-jar-with-dependencies.jar
+
+- name: Start service
+  become: true
+  systemd:
+    name: worker
+    state: restarted
+    enabled: yes

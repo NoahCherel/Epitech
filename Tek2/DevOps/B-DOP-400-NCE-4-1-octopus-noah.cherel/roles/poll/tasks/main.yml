@@ -1,0 +1,32 @@
+---
+- name: unarchive poll.tar
+  become: true
+  unarchive:
+    src: ../../../poll.tar
+    dest: /opt/
+
+- name: upload .service
+  become: true
+  register: service
+  template:
+    src: ../files/poll.service
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install dependance
+  become: true
+  pip:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - Redis
+  - Flask
+
+- name: start service
+  become: true
+  systemd:
+    name: poll
+    state: restarted
+    enabled: yes

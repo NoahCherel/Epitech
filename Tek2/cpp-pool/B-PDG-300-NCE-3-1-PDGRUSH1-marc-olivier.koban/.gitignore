@@ -1,0 +1,12 @@
+*.out
+*.o
+*.rb
+*.a
+*.pl
+*.hi
+*.gcda
+*.gcno
+/.vscode
+/.idea
+
+pushswap_checker

@@ -1,0 +1,9 @@
+*.o
+*.out
+*.rb
+*.a
+vgcore.*
+.vscode
+.idea
+cpp.*
+my_rpg

@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+import math
+import sys
+from math import *
+
+def diff(result):
+    if ((result - (math.pi / 2)) % 10 == -0.0000000000):
+        a = result - (math.pi / 2)
+    else:
+        a = -1 * (result - (math.pi / 2))
+    return abs(a)
+
+def borwein(x):
+    n = int(sys.argv[1])
+    if x == 0:
+        return 1
+    res = 1
+    for i in range(n + 1):
+        res *= sin(x / (2 * i + 1)) / (x / (2 * i + 1))
+    return res
+
+def midpoint():
+    n = 10000
+    a = 0
+    b = 5000
+    h = (b - a) / n
+    res = 0
+    for i in range(n):
+        res += borwein(a + i * h + h / 2)
+    return res * h
+
+def trapezoid():
+    n = 10000
+    a = 0
+    b = 5000
+    h = (b - a) / n
+    res = 0
+    for i in range(n):
+        res += borwein(a + i * h) + borwein(a + (i + 1) * h)
+    return res * h / 2
+
+def simpson():
+    a = 0
+    b = 5000
+    n = 10000
+    h = (b - a) / n
+    res = 0
+    for i in range(n):
+        res += borwein(a + i * h) + 4 * borwein(a + i * h + h / 2) + borwein(a + (i + 1) * h)
+    return res * h / 6
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: ./110borwein.py <number of iterations>")
+        sys.exit(84)
+    try:
+        n = int(sys.argv[1])
+    except:
+        print("Usage: ./110borwein.py <number of iterations>")
+        sys.exit(84)
+    if n < 0:
+        print("Usage: ./110borwein.py <number of iterations>")
+        sys.exit(84)
+    print("Midpoint:")
+    print("I", end="")
+    print(sys.argv[1], "= ", end="")
+    print(f"{midpoint():.10f}")
+    print("diff = " , end="")
+    print(f"{diff(midpoint()):.10f}")
+    print()
+    print("Trapezoidal:")
+    print("I", end="")
+    print(sys.argv[1], "= ", end="")
+    print(f"{trapezoid():.10f}")
+    print("diff = " , end="")
+    print(f"{diff(trapezoid()):.10f}")
+    print()
+    print("Simpson:")
+    print("I", end="")
+    print(sys.argv[1], "= ", end="")
+    print(f"{simpson():.10f}")
+    print("diff = ", end="")
+    print(f"{diff(simpson()):.10f}")
+
+
+if __name__ == '__main__':
+    main()

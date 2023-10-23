@@ -1,0 +1,4 @@
+myftp
+*.o
+RFC*
+test_*

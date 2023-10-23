@@ -1,0 +1,11 @@
+.vscode
+.idea
+*.o
+*.out
+*.rb
+*.a
+*.so
+*.txt
+*.log
+*.pdf
+arcade

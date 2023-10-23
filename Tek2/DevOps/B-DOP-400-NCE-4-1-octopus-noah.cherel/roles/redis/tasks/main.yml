@@ -1,0 +1,25 @@
+- name: Install Redis
+  become: true
+  apt:
+    name: redis-server
+    state: present
+
+- name: Create Redis data directory
+  become: true
+  register: dir_redis
+  file:
+    path: "{{ redis_dir }}"
+    state: directory
+  
+- name: Configure Redis
+  become: true
+  register: conf_redis
+  template:
+    src: ../files/redis.conf
+    dest: /etc/redis/redis.conf
+
+- name: Restart Redis
+  become: true
+  systemd: 
+    name: redis-server
+    state: restarted

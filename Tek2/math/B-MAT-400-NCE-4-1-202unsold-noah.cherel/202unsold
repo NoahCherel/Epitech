@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+
+import sys
+from math import *
+
+
+X = []
+Y = []
+
+def get_result(x, y, a, b):
+    result = ((a - x) * (b - y)) / ((5 * a - 150) * (5 * b - 150))
+    return result
+
+def get_tab_sum(tab, i, j, mode):
+    result = 0
+    for d in range(5):
+        result += tab[i][j]
+        if mode == 1:
+            j += 1
+        else:
+            i += 1
+    return result
+
+def     get_tab(a, b):
+    tab = [[float(get_result((x + 1) * 10, (y + 1) * 10, a, b))
+            for x in range(5)] for y in range(5)]
+    return tab
+
+def first_tab(a, b, tab):
+    print("\tX=10\tX=20\tX=30\tX=40\tX=50\tY law")
+    for i in range(5):
+        print("Y=" + str((i + 1) * 10), end='\t')
+        for j in range(5):
+            print("%.3f" % tab[i][j], end='\t')
+        Y.append(get_tab_sum(tab, i, 0, 1))
+        print("%.3f" % get_tab_sum(tab, i, 0, 1))
+    print("X law\t", end='')
+    for s in range(len(tab) - 1):
+        X.append(get_tab_sum(tab, 0, s, 0))
+        print("%.3f" % get_tab_sum(tab, 0, s, 0), end='\t')
+    X.append(get_tab_sum(tab, 0, s + 1, 0))
+    print("%.3f" % get_tab_sum(tab, 0, s + 1, 0) + "\t1.000")
+
+def second_tab(a, b, tab):
+    z = 2
+    print("z\t20\t30\t40\t50\t60\t70\t80\t90\t100\np(Z=z)", end='')
+    for z in range(2, 11):
+        result = 0.0
+        summ = 0.0
+        for y in range(1, 6):
+            for x in range(1, 6):
+                result = get_result(x * 10, y * 10, a, b)
+                if (x + y == z and y < 6):
+                    summ += result
+        print("\t%0.3f" %(summ), end='')
+    print()
+
+def third_tab(a, b, tab):
+    totalX = sum(X[i] * ((i + 1) * 10) for i in range(0, 5))
+    totalY = sum(Y[i] * ((i + 1) * 10) for i in range(0, 5))
+    expX = sum(((i + 1) * 10 - totalX) ** 2 * X[i] for i in range(0, 5))
+    expY = sum(((i + 1) * 10 - totalY) ** 2 * Y[i] for i in range(0, 5))
+    print("expected value of X:\t" + "%0.1f" %(totalX))
+    print("variance of X:\t\t" + "%0.1f" %(expX))
+    print("expected value of Y:\t" + "%0.1f" %(totalY))
+    print("variance of Y:\t\t" + "%0.1f" %(expY))
+    print("expected value of Z:\t" + "%0.1f" %(totalX + totalY))
+    print("variance of Z:\t\t" + "%0.1f" %(expX + expY))
+
+def     print_tab(a, b, tab):
+    print("------------------------------------------------------------------------------")
+    first_tab(a, b, tab)
+    print("------------------------------------------------------------------------------")
+    second_tab(a, b, tab)
+    print("------------------------------------------------------------------------------")
+    third_tab(a, b, tab)
+    print("------------------------------------------------------------------------------")
+
+def main():
+    if len(sys.argv) != 3:
+        exit(84)
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
+        print("USAGE")
+        print("\t./202unsold a b")
+        print("DESCRIPTION")
+        print("\ta\tconstant computed from the past results")
+        print("\tb\tconstant computed from the past results")
+        exit(0)
+    try:
+        a = int(sys.argv[1])
+        b = int(sys.argv[2])
+    except:
+        exit(84)
+    if a < 50 or b < 50:
+        exit(84)
+    tab = get_tab(a, b)
+
+    print_tab(a, b, tab)
+if __name__ == "__main__":
+    main()

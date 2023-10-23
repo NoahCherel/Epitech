@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+
+import csv
+import sys
+
+def derivee(v, v1, v2, ph, ph1, ph2):
+    g = (ph - ph1) / (v - v1)
+    d = (ph2 - ph) / (v2 - v)
+    derivee1 = (g * ((v2 - v) / (v2 - v1)))
+    derivee2 = (d * ((v - v1) / (v2 - v1)))
+    deri = derivee1 + derivee2
+    return deri
+
+def first_derive(n, x, y):
+    t = 1
+    D = 0
+    max = 0
+    tmax = 0
+    while t < n - 1 :
+        deriv = derivee(x[t], x[t - 1], x[t + 1], y[t], y[t - 1], y[t + 1])
+        if deriv > max :
+            max = deriv
+            tmax = int(x[t])
+        print("%.1f ml -> %.2f" % (float(x[t]), deriv))
+        x[t - 1] = x[t]
+        y[t - 1] = deriv
+        t = t + 1
+    print("\nEquivalence point at " + '%.1f' %tmax + " ml")
+
+def sec_derive(n, x, y):
+    w = 1
+    while w < n - 3 :
+        second_deriv = derivee(x[w], x[w - 1], x[w + 1], y[w], y[w - 1], y[w + 1])
+        print("%.1f ml -> %.2f" % (float(x[w]), second_deriv))
+        x[w - 1] = x[w]
+        y[w - 1] = second_deriv
+        w = w + 1
+
+def main():
+    if len(sys.argv) != 2:
+        sys.exit(84)
+    try:
+        filename = sys.argv[1]
+        open(filename, 'r')
+    except:
+        sys.exit(84)
+    volume = []
+    ph = []
+    with open(filename, 'r') as csvfile:
+        data = csv.reader(csvfile, delimiter=';', quotechar='|')
+        try:
+            for row in data:
+                volume.append(float(row[0]))
+                ph.append(float(row[1]))
+        except:
+            sys.exit(84)
+        if len(volume) != len(ph):
+            sys.exit(84)
+        if len(volume) == 0 or len(ph) == 0:
+            sys.exit(84)
+    print("Derivative:")
+    first_derive(len(volume) ,volume ,ph)
+    print("\nSecond derivative:")
+    sec_derive(len(volume), volume, ph)
+    print("\nSecond derivative estimated:")
+
+if __name__ == '__main__':
+    main()
+

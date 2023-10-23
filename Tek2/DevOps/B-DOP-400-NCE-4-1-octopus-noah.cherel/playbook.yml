@@ -1,0 +1,45 @@
+- name: Base
+  hosts: redis:postgresql:poll:worker:result
+  become: true
+  roles:
+    - base
+
+- name: redis
+  hosts: redis
+  become: true
+  vars_files:
+    - group_vars/all.yml
+  roles:
+    - redis
+
+- name: postgresql
+  hosts: postgresql
+  become: true
+  vars_files:
+    - group_vars/all.yml
+  roles:
+    - postgresql
+
+- name: poll
+  hosts: poll
+  become: true
+  vars_files:
+    - group_vars/all.yml
+  roles:
+    - poll
+
+- name: worker
+  hosts: worker
+  become: true
+  vars_files:
+    - group_vars/all.yml
+  roles:
+    - worker
+
+- name: result
+  hosts: result
+  become: true
+  vars_files:
+    - group_vars/all.yml
+  roles:
+    - result

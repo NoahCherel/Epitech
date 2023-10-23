@@ -1,0 +1,87 @@
+- name: set apt key
+  become: yes
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: set repo apt
+  apt_repository:
+    repo: deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main
+    state: present
+
+- name: Install PostgreSQL 12 and psql tool
+  become: true
+  apt:
+    name:
+      - postgresql-12
+      - postgresql-client-12
+      - postgresql-contrib-12
+      - libpq-dev
+      - acl
+
+- name: Install psycopg2
+  become: yes
+  pip:
+    name: psycopg2-binary
+    state: present
+
+- name: Copy postgresql.conf
+  register: conf
+  copy:
+    src: ../files/postgresql.conf
+    dest: /etc/postgresql/12/main/postgresql.conf
+
+- name: template pg_hba.conf
+  become: true
+  register: template
+  template:
+    src: ../files/pg_hba.conf
+    dest: /etc/postgresql/12/main/pg_hba.conf
+
+- name: Restart PostgreSQL service
+  become: true
+  when: template.changed or conf.changed
+  systemd: 
+    name: postgresql
+    state: restarted
+
+- name: Create PostgreSQL database
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: "{{ postgresql_db }}"
+    state: present
+
+- name: Copy schema file
+  register: schema
+  copy:
+    src: ../files/schema.sql
+    dest: /tmp/schema.sql
+
+- name: Run the SQL schema
+  become: true
+  when: schema.changed
+  postgresql_query:
+    db: "{{ postgresql_db }}"
+    query: "{{ lookup('file', '../files/schema.sql') }}"
+
+- name: Create PostgreSQL user
+  become: true
+  become_user: postgres
+  postgresql_user:
+    db: "{{ postgresql_db }}"
+    name: "{{ postgresql_user }}" 
+    password: "{{ postgresql_pass }}" 
+    role_attr_flags: LOGIN,NOSUPERUSER,NOCREATEDB,NOCREATEROLE
+    encrypted: yes
+    state: present
+
+- name: Grant privileges to user
+  community.postgresql.postgresql_privs:
+    database: "{{ postgresql_db }}"
+    state: present
+    privs: SELECT,INSERT,UPDATE,DELETE
+    type: table
+    obj: votes
+    roles: "{{ postgresql_user }}"
+    grant_option: true

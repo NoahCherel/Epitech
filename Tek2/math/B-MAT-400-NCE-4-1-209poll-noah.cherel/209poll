@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+
+import sys
+import math
+
+def help():
+    print("USAGE: ./209poll pSize sSize p\n")
+    print("DESCRIPTION:")
+    print("\tpSize\tsize of the population")
+    print("\tsSize\tsize of the sample (supposed to be representative)")
+    print("\tp\tpercentage of voting intentions for a specific candidate")
+    exit(84)
+
+def main():
+    if len(sys.argv) != 4:
+        help()
+
+    try:
+        pSize = int(sys.argv[1])
+        sSize = int(sys.argv[2])
+        p = float(sys.argv[3])
+    except:
+        help()
+
+    if pSize < 0 or sSize < 0 or p < 0 or p > 100:
+        exit(84)
+
+    print("Population size:\t{}".format(pSize))
+    print("Sample size:\t{}".format(sSize))
+    print("Voting intentions:\t{:.2f}%".format(p))
+
+    p = p / 100
+    
+    if pSize == 1:
+        exit(84)
+    
+    variance = (p * (1 - p)) / sSize * ((pSize - sSize) / (pSize - 1))
+
+    if variance < 0:
+        exit(84)
+
+    print("Variance:\t{:.6f}".format(variance))
+
+    CI95A = (p - 1.96 * math.sqrt(variance)) * 100
+    CI95B = (p + 1.96 * math.sqrt(variance)) * 100
+
+    CI99A = (p - 2.58 * math.sqrt(variance)) * 100
+    CI99B = (p + 2.58 * math.sqrt(variance)) * 100
+
+    if CI95A < 0:
+        CI95A = 0
+
+    if CI95B > 100:
+        CI95B = 100
+
+    if CI99A < 0:
+        CI99A = 0
+
+    if CI99B > 100:
+        CI99B = 100
+
+    print("95% confidence interval: [{:.2f}%; {:.2f}%]".format(CI95A, CI95B))
+    print("99% confidence interval: [{:.2f}%; {:.2f}%]".format(CI99A, CI99B))
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+from sys import argv, exit
+from math import exp, sqrt, ceil
+
+def print_help():
+    print("USAGE")
+    print("\t./204ducks a")
+    print("")
+    print("DESCRIPTION")
+    print("\ta\tconstant (between 0 and 2.5)")
+    exit(0)
+
+def prob_(a, t, ver=0):
+    if ver == 0:
+        return (-a * exp(-t)) - ((4 - 3 * a) / 2 * exp(-2 * t)) - ((2 * a - 4) / 4 * exp(-4 * t))
+    else:
+        return (a * exp(-t)) + ((4 - 3 * a) * exp(-2 * t)) + ((2 * a - 4) * exp(-4 * t))
+
+def avr_ret_time(a):
+    r = 0.0
+    t = 0.0
+    while t < 10:
+        r += (prob_(a, t, 1) * t / 1000)
+        t += 0.001
+    return r
+
+def std_dev(a, art):
+    r = 0.0
+    t = 0.0
+    while t < 100:
+        r += (pow(t - art, 2) * prob_(a, t, 1) / 1000)
+        t += 0.001
+    return sqrt(r)
+
+def time_percentage(a, x):
+    t = 0.0
+    while t < 1000:
+        if (prob_(a, t / 60) - prob_(a, 0)) >= x:
+            return t
+        t += 0.5
+    raise
+
+def main():
+    argv.pop(0)
+    if len(argv) != 1:
+        exit(84)
+    if argv[0] == '-h':
+        print_help()
+    try:
+        a = float(argv[0])
+        if a < 0 or a > 2.5:
+            exit(84)
+        art = avr_ret_time(a)
+        sd = std_dev(a, art)
+        time_50 = time_percentage(a, 0.5)
+        time_99 = time_percentage(a, 0.99)
+        duck1 = (prob_(a, 1) - prob_(a, 0)) * 100
+        duck2 = (prob_(a, 2) - prob_(a, 0)) * 100
+        print("Average return time: %dm " % int(art) + "%ds" % ceil((art - int(art)) * 60))
+        print("Standard deviation: %.3f" % sd)
+        print("Time after which 50%% of the ducks are back: %dm %d%ds" % (time_50 / 60, time_50 % 60 / 10, time_50 % 10))
+        print("Time after which 99%% of the ducks are back: %dm %d%ds" % (time_99 / 60, time_99 % 60 / 10, time_99 % 10))
+        print("Percentage of ducks back after 1 minute: %.1f%%" % duck1)
+        print("Percentage of ducks back after 2 minutes: %.1f%%" % duck2)
+    except:
+        exit(84)
+
+if __name__ == "__main__":
+    main()

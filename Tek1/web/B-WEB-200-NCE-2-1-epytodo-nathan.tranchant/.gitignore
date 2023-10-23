@@ -1,0 +1,6 @@
+node_modules/
+logs
+tmp
+*.log
+package-lock.*
+.vscode/

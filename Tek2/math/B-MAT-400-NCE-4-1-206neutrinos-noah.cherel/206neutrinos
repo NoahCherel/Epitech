@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+
+from math import sqrt, exp, pi
+import sys
+
+def help():
+    print("Usage: ./206neutrinos.py n a h sd")
+    print("n: number of values")
+    print("a: arithmetic mean")
+    print("h: harmonic mean")
+    print("sd: standard deviation")
+
+def sd_fct(temp, value, a, n):
+    return sqrt(((temp + pow(value, 2)) / n) - pow(a, 2))
+
+def a_fct(total, value, n):
+    return (total + value) / n
+
+def main():
+    if len(sys.argv) != 5:
+        help()
+        sys.exit(84)
+    try:
+        n = int(sys.argv[1])
+        a = int(sys.argv[2])
+        h = int(sys.argv[3])
+        sd = int(sys.argv[4])
+    except ValueError:
+        help()
+        sys.exit(84)
+    if n < 0:
+        print("n must be positive")
+        sys.exit(84)
+    buffer = ""
+    while buffer != "END":
+        print("Enter next value: ", end="")
+        buffer = input()
+        if buffer == "END":
+            break
+        else:
+            try :
+                float(buffer)
+            except ValueError:
+                print("Invalid value")
+                sys.exit(84)
+            value = float(buffer)
+            total = a * n
+            temp = (sd * sd + a * a) * n
+            n += 1
+            a = a_fct(total, value, n)
+            sd = sd_fct(temp, value, a, n)
+            h = n / ((n - 1) / h + 1 / value)
+            r = sqrt(a**2 + sd**2)
+            print("\tNumber of values:\t%.0f" % n)
+            print("\tStandard deviation:\t%.2f" % sd)
+            print("\tArithmetic mean:\t%.2f" % a)
+            print("\tRoot mean square:\t%.2f" % r)
+            print("\tHarmonic mean:\t\t%.2f" % h)
+            print()
+
+if __name__ == '__main__':
+    main()

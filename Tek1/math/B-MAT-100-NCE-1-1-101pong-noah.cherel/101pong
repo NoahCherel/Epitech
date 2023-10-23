@@ -1,0 +1,64 @@
+#!/usr/bin/python3
+
+import sys, math
+from math import *
+def calc_vector(args):
+    vx = (float(args[4]) - float(args[1]))
+    vy = (float(args[5]) - float(args[2]))
+    vz = (float(args[6]) - float(args[3]))
+    print("The velocity vector of the ball is:")
+    print(f'({vx:.2f}, {vy:.2f}, {vz:.2f})')
+
+def calc_cords(args):
+    cx = (float(args[4]) + (float(args[4]) - float(args[1])) * float(args[7]))
+    cy = (float(args[5]) + (float(args[5]) - float(args[2])) * float(args[7]))
+    cz = (float(args[6]) + (float(args[6]) - float(args[3])) * float(args[7]))
+    print("At time t + ", end='')
+    print(sys.argv[7], end='')
+    print(", ball coordinates will be:")
+    print(f'({cx:.2f}, {cy:.2f}, {cz:.2f})')
+
+def angle_possible_or_not(args):
+    x, y, z = float(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3])
+    x1, y1, z1 = float(sys.argv[4]), float(sys.argv[5]), float(sys.argv[6])
+    angle = 90 - (acos(abs(z1 - z) / sqrt(pow(x1 - x, 2) + pow(y1 - y, 2) + pow(z1 - z, 2)))) * (180 / math.pi)
+    if ((z1 - z == 0) & (z1 != 0)):
+        print("The ball won't reach the paddle.")
+        sys.exit(0)
+    if (-z1 / (z1 - z) < 0):
+        print("The ball won't reach the paddle.")
+        sys.exit(0)
+    if (angle == 0):
+        print("The ball won't reach the paddle.")
+        sys.exit(84)
+    if (angle > 90):
+        sys.exit(84)
+    if (angle < 0):
+        sys.exit(84)
+
+    print("The incidence angle is:")
+    print(f'{angle:.2f}', "degrees")
+
+def checkArg(args):
+    for i in range(1, 7):
+        try:
+            float(sys.argv[i])
+        except:
+            sys.exit(84)
+
+def main():
+    checkArg(sys.argv)
+    if (len(sys.argv) != 8):
+        sys.exit(84)
+    n = int(sys.argv[7])
+    if (n <= 0):
+        sys.exit(84)
+    if (sys.argv[7].isnumeric()) == False:
+        sys.exit(84)
+    calc_vector(sys.argv)
+    calc_cords(sys.argv)
+    angle_possible_or_not(sys.argv)
+    sys.exit(0)
+
+if __name__ == '__main__':
+    sys.exit(main())

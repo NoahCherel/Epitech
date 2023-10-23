@@ -1,0 +1,142 @@
+#!/usr/bin/python3
+
+import numbers
+import sys
+import math
+from math import *
+
+def identity(n):
+    matrix = []
+    for a in range(n):
+        line = []
+        for b in range(n):
+            if (b == a):
+                line.append(1)
+            else:
+                line.append(0)
+        matrix.append(line)
+    return (matrix)
+
+def init_mat(n, k):
+    tab = []
+    for a in range(n):
+        tab2 = []
+        for b in range(n):
+            tab2.append(k)
+        tab.append(tab2)
+    return (tab)
+
+def mult_mat(matrix_1, matrix_2):
+    matrix = [[0] * len(matrix_2[0]) for y in range(len(matrix_2))]
+    for i in range(len(matrix_2)):
+        for j in range(len(matrix_2[0])):
+            for k in range(len(matrix_2[0])):
+                matrix[i][j] = matrix[i][j] + matrix_1[k][j] * matrix_2[i][k]
+    return (matrix)
+
+def pow_mat(matrix_1, nb):
+    tab = matrix_1
+    for a in range(nb - 1):
+        tab = mult_mat(tab, matrix_1)
+    return (tab)
+
+def div_mat(matrix_1, nb):
+    for a in range(len(matrix_1)):
+        for b in range(len(matrix_1[0])):
+            matrix_1[a][b] = matrix_1[a][b] / nb
+    return (matrix_1)
+
+def add_mat(matrix_1, matrix_2):
+    tab = []
+    for a in range(len(matrix_1)):
+        tab2 = []
+        for b in range(len(matrix_1[0])):
+            tab2.append(matrix_1[a][b] + matrix_2[a][b])
+        tab.append(tab2)
+    return (tab)
+
+def sub_mat(matrix_1, matrix_2):
+    tab = []
+    for a in range(len(matrix_1)):
+        tab2 = []
+        for b in range(len(matrix_1[0])):
+            tab2.append(matrix_1[a][b] - matrix_2[a][b])
+        tab.append(tab2)
+    return (tab)
+
+def exp(tab):
+    matrix = identity(len(tab))
+    for a in range(1, 100):
+        matrix = add_mat(matrix, div_mat(pow_mat(tab, a), math.factorial(a)))
+    return (matrix)
+
+def cos(mat):
+    matrix = identity(len(mat))
+    for i in range (1, 100):
+        if (i % 2 == 0):
+            matrix = add_mat(matrix, div_mat(pow_mat(mat, 2 * i), math.factorial(2 * i)))
+        else:
+            matrix = sub_mat(matrix, div_mat(pow_mat(mat, 2 * i), math.factorial(2 * i)))
+    return (matrix)
+
+def sin(mat):
+    matrix = mat
+    for i in range (1, 100):
+        if (i % 2 == 0):
+            matrix = add_mat(matrix, div_mat(pow_mat(mat, 2 * i + 1), math.factorial(2 * i + 1)))
+        else:
+            matrix = sub_mat(matrix, div_mat(pow_mat(mat, 2 * i + 1), math.factorial(2 * i + 1)))
+    return (matrix)
+
+def cosh(mat):
+    matrix = identity(len(mat))
+    for i in range(1, 100):
+        matrix = add_mat(matrix, div_mat(pow_mat(mat, 2 * i), math.factorial(2 * i)))
+    return matrix
+
+def sinh(mat):
+    matrix = mat
+    for i in range(1, 100):
+        matrix = add_mat(matrix, div_mat(pow_mat(mat, 2 * i + 1), math.factorial(2 * i + 1)))
+    return matrix
+
+def init(tab):
+    args = ["EXP", "COS", "SIN", "COSH", "SINH"]
+    tab_ptr = [exp, cos, sin, cosh, sinh]
+    for a in range(len(tab_ptr)):
+        if sys.argv[1] == args[a]:
+            tab = tab_ptr[a](tab)
+    return (tab)
+
+def disp(mat):
+    for a in range(len(mat)):
+        for b in range(len(mat[0])):
+            if (b != len(mat[a]) - 1):
+                print("%.2f" % mat[a][b], end="\t")
+            else: print("%.2f" % mat[a][b], end="\n")
+
+def check():
+    if len(sys.argv) <= 2:
+        exit(84)
+    if sys.argv[1] not in ["EXP", "COS", "SIN", "COSH", "SINH"]:
+        exit(84)
+
+def fill():
+    arg = math.trunc(math.sqrt(len(sys.argv) - 2))
+    if (arg ** 2) != (len(sys.argv) - 2):
+        sys.exit(84)
+    return (arg)
+
+def main():
+    arg = fill()
+    matrix = []
+    for i in range(int(arg)):
+        matrix.append([])
+        for j in range(int(arg)):
+            matrix[i].append(int(sys.argv[i * int(arg) + j + 2]))
+    matrix = init(matrix)
+    disp(matrix)
+
+if __name__ == '__main__':
+    main()
+

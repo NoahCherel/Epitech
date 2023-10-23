@@ -1,0 +1,40 @@
+#!/usr/bin/python3
+
+import sys
+from math import *
+
+def transfer():
+    if (len(sys.argv) >= 2 and (len(sys.argv) - 1) % 2 == 0):
+        a = 1
+        x = 0.0
+        result = 1.0
+        while (x < 1.001):
+            while (a < (len(sys.argv) - 1)):
+                try:
+                    num = [int(s) for s in sys.argv[a].split('*')]
+                    den = [int(s) for s in sys.argv[a + 1].split('*')]
+                except:
+                    sys.exit(84)
+                if sum(den[i] * x ** i for i in range(len(den))) == 0:
+                    sys.exit(84)
+                result = result * (sum(num[i] * x ** i for i in range(len(num))) / sum(den[i] * x ** i for i in range(len(den))))
+                a = a + 2
+            if (round(x, 3) == int(x)):
+                print("%.3f" % x, "->", "%.5f" % result)
+            else:
+                print("%.3f" % x, "->", "%.5f" % result)
+            x += 0.001
+            a = 1
+            result = 1.0
+    else:
+        sys.exit(84)
+
+def main():
+    if len(sys.argv) < 2:
+        sys.exit(84)
+        
+    transfer()
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()

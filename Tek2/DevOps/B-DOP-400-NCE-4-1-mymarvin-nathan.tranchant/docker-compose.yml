@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  jenkins:
+    build: .
+    restart: always
+    env_file:
+      - marvin.env
+    volumes:
+      - ./my_marvin.yml:/var/jenkins_casc.yml
+      - ./job_dsl.groovy:/job_dsl.groovy
+    ports:
+      - "8080:8080"
