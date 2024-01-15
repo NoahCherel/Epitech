@@ -1,0 +1,18 @@
+Module: Utils
+
+Functions:
+- withFileHandling :: FilePath -> IO (Either String String)
+  Description: This function takes a file path as input and handles file reading. It returns an 'IO' action that can either result in an error message (Left) or the file's contents (Right).
+
+- writeResultToFile :: String -> NewLangVal -> IO ()
+  Description: This function takes a filename and a 'NewLangVal' as input and writes the string representation of the 'NewLangVal' to the specified file. It also prints a message indicating that the result has been saved to the file.
+
+Data Types:
+- FilePath
+  Description: A type representing file paths.
+
+- NewLangVal
+  Description: A type representing a value in a custom language (not defined in the code snippet).
+
+- IOError
+  Description: A standard Haskell type representing I/O errors.

@@ -1,0 +1,36 @@
+name: Haskell CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set Up Haskell
+        uses: actions/setup-haskell@v1
+        with:
+          ghc-version: 8.8.4
+          cabal-version: 3.2
+
+      - name: Update Package List
+        run: sudo apt-get update
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install -y libffi-dev libgmp-dev zlib1g-dev
+
+      - name: Install Stack
+        run: |
+          curl -sSL https://get.haskellstack.org/ | sh
+
+      - name: Build and Test
+        run: |
+          make re
+          make test

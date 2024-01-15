@@ -1,0 +1,24 @@
+<program>         ::= <function-definitions> <bytecode-operations>
+<function-definitions> ::= <function-definition>*
+<function-definition>  ::= <function-name> ":" <number>
+<function-name>  ::= <identifier>
+<number>         ::= <integer>
+<identifier>     ::= <alphabetic-character> <alphanumeric-character>*
+<alphabetic-character> ::= <uppercase-letter> | <lowercase-letter>
+<alphanumeric-character> ::= <alphabetic-character> | <digit>
+<bytecode-operations> ::= <bytecode-operation>*
+<bytecode-operation>  ::= <push-operation> | <call-operation> | <return-operation> | <jmpiffalse-operation>
+                     | <pusharg-operation> | <pushenv-operation> | <pushvar-operation> | <changevar-operation>
+<push-operation>    ::= "push" <value>
+<call-operation>    ::= "call"
+<return-operation>  ::= "ret"
+<jmpiffalse-operation> ::= "jmpiffalse" <integer>
+<pusharg-operation> ::= "pusharg" <integer>
+<pushenv-operation> ::= "pushenv" <identifier>
+<pushvar-operation> ::= "pushvar" <identifier>
+<changevar-operation> ::= "changevar" <identifier> <value>
+<value>          ::= <text-value> | <integer-value> | <bool-value> | <built-in-function>
+<text-value>     ::= '"' <string> '"'
+<integer-value>  ::= <integer>
+<bool-value>     ::= "true" | "false"
+<built-in-function> ::= "add" | "sub" | "mul" | "div" | "eq" | "less" | "not"

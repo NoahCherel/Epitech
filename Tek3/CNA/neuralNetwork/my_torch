@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+
+import numpy as np
+import argparse
+import sys
+
+# Sigmoid activation function
+def sigmoid(x):
+    clipped_x = np.clip(x, -500, 500)  # Adjust the clip range as needed
+    return 1 / (1 + np.exp(-clipped_x))
+
+# Derivative of the sigmoid function
+def sigmoid_derivative(x):
+    return x * (1 - x)
+
+# Chess Neural Network Class
+class ChessNN:
+    def __init__(self, input_size, hidden_size, output_size):
+        # Initialize weights and biases
+        self.weights_input_hidden = np.random.randn(input_size, hidden_size)
+        self.bias_hidden = np.zeros((1, hidden_size))
+        self.weights_hidden_output = np.random.randn(hidden_size, output_size)
+        self.bias_output = np.zeros((1, output_size))
+
+    def load_model(self, file_path):
+        model = np.load(file_path)
+        self.weights_input_hidden = model['weights_input_hidden']
+        self.bias_hidden = model['bias_hidden']
+        self.weights_hidden_output = model['weights_hidden_output']
+        self.bias_output = model['bias_output']
+    
+    def save_model(self, file_path):
+        np.savez(file_path, weights_input_hidden=self.weights_input_hidden, bias_hidden=self.bias_hidden, weights_hidden_output=self.weights_hidden_output, bias_output=self.bias_output)
+    
+    def forward(self, X):
+        # Forward pass through the network
+        self.hidden_layer_input = np.dot(X, self.weights_input_hidden) + self.bias_hidden
+        self.hidden_layer_output = sigmoid(self.hidden_layer_input)
+        self.output_layer_input = np.dot(self.hidden_layer_output, self.weights_hidden_output) + self.bias_output
+        self.predicted_output = sigmoid(self.output_layer_input)
+        return self.predicted_output
+
+    def backward(self, X, y, learning_rate):
+        # Backward pass and weight update
+        error = y - self.predicted_output
+        output_delta = error * sigmoid_derivative(self.predicted_output)
+
+        error_hidden_layer = output_delta.dot(self.weights_hidden_output.T)
+        hidden_layer_delta = error_hidden_layer * sigmoid_derivative(self.hidden_layer_output)
+
+        # Update weights using matrix operations
+        self.weights_hidden_output += self.hidden_layer_output.T.dot(output_delta) * learning_rate
+        self.bias_output += np.sum(output_delta, axis=0, keepdims=True) * learning_rate
+        self.weights_input_hidden += X.T.dot(hidden_layer_delta) * learning_rate
+        self.bias_hidden += np.sum(hidden_layer_delta, axis=0, keepdims=True) * learning_rate
+
+    def train(self, X, y, epochs=10, learning_rate=0.1, batch_size=64):
+        # Train the neural network with batch processing
+        for epoch in range(epochs):
+            for i in range(0, X.shape[0], batch_size):
+
+                predicted_result = self.forward(X[i:i+batch_size])
+
+                loss = np.mean(np.square(y[i:i+batch_size] - predicted_result))
+                print("Epoch:", epoch, "Batch:", i, "Loss:", loss)
+
+                #if loss < 0.01:
+                #    print("Training stopped. Loss is below 0.01.")
+                #    return
+                
+                learning_rate *= 0.9999  # Learning rate decay
+
+                X_batch = X[i:i+batch_size]
+                y_batch = y[i:i+batch_size]
+                self.backward(X_batch, y_batch, learning_rate)
+
+# Convert FEN string to input features (8x8 matrix representation)
+def fen_to_input(fen):
+    board = np.zeros((8, 8), dtype=float)
+    pieces = fen.split()[0].split('/')
+    
+    for i, row in enumerate(pieces):
+        j = 0
+        for char in row:
+            if char.isdigit():
+                j += int(char)
+            else:
+                board[i][j] = 1 if char.isupper() else -1
+                j += 1
+    return board.flatten()
+
+# Convert result string to output labels
+def result_to_label(result):
+    if result == "1-0" or result == "1-O":
+        return np.array([1, 0, 0, 0, 0])  # White wins
+    elif result == "0-1" or result == "O-1" or result == "00-1":
+        return np.array([0, 1, 0, 0, 0])  # Black wins
+    elif result == "1/2-1/2" or result == "0-0" or result == "1/2" or result == "O-O" or result == "(+)-(-)":
+        return np.array([0, 0, 1, 0, 0])  # Draw
+    elif result == "*" or result == "-/+" or result == "+/-" or result == "-":
+        return np.array([0, 0, 0, 1, 0])  # Ongoing/Unfinished
+    elif result == "CHECKMATE":
+        return np.array([0, 0, 0, 0, 1])  # Checkmate
+    else:
+        raise ValueError("Invalid result string: {}a".format(result))
+
+# Parse the dataset file and update the dataset
+def parse_dataset_file(file_path):
+    dataset = []
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    examples = []
+    current_example = {"fen": None, "result": None}
+
+    for line in lines:
+        line = line.strip()
+        if line.startswith("RES:"):
+            current_example["result"] = line.split(" ")[1]
+        elif line.startswith("CHECKMATE:"):
+            current_example["checkmate"] = line.split(" ")[1]
+        elif line.startswith("FEN:"):
+            current_example["fen"] = line.split(" ")[1]
+        elif line.startswith("."):
+            # Assume lines starting with '.' are part of the chess board
+            current_example.setdefault("board", []).append(list(line.replace(".", " ")))
+
+        if not line:
+            # Empty line indicates the end of an example
+            examples.append(current_example.copy())
+            current_example = {"fen": None, "result": None}
+
+    for example in examples:
+        if example["fen"] and example["result"] and example.get("board"):
+            input_features = fen_to_input(example["fen"])
+            output_label = result_to_label(example["result"])
+            dataset.append({"fen": example["fen"], "result": example["result"], "input": input_features, "output": output_label})
+
+    # Print the dataset
+    #for example in dataset:
+    #    print("FEN:", example["fen"])
+    #    print("Result:", example["result"])
+    #    print("Input:", example["input"])
+    #    print("Output:", example["output"])
+    #    print()
+    return dataset
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Chess Neural Network')
+    parser.add_argument('--train', action='store_true', help='Train a new model or continue training an existing one')
+    parser.add_argument('--model', type=str, default='chess_model.npz', help='Path to the model file')
+
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    args = parse_arguments()
+
+    # Path to the dataset file
+    dataset_file_path = "./datasets/stalemate/10_pieces.txt"
+    #dataset_file_path = "./datasets/checkmate/lots_pieces.txt"
+
+    # Parse the dataset file
+    dataset = parse_dataset_file(dataset_file_path)
+
+    # Prepare training data
+    X_train = np.array([example["input"] for example in dataset])
+    y_train = np.array([example["output"] for example in dataset])
+
+    # Create and train the neural network or load an existing model
+    input_size = 64  # 8x8 board
+    hidden_size = 16
+    output_size = 5  # Five classes: win, lose, draw, ongoing/unfinished, checkmate
+    chess_nn = ChessNN(input_size, hidden_size, output_size)
+
+    if args.train:
+        if args.model:
+            try:
+                # Load existing model
+                chess_nn.load_model(args.model)
+                print("Loaded existing model:", args.model)
+                # Continue training the model
+                chess_nn.train(X_train, y_train, epochs=10000, learning_rate=0.1, batch_size=32)
+                # Save the model after training
+                chess_nn.save_model(args.model)
+                print("Model saved:", args.model)
+            except FileNotFoundError:
+                print("Model file not found. Creating a new model.")
+                # Train the model or continue training
+                chess_nn.train(X_train, y_train, epochs=10000, learning_rate=0.1, batch_size=32)
+                # Save the model after training
+                chess_nn.save_model(args.model)
+                print("Model saved:", args.model)
+    elif args.model:
+        try:
+            # Load existing model
+            chess_nn.load_model(args.model)
+            print("Loaded existing model:", args.model)
+        except FileNotFoundError:
+            print("Model file not found. Exiting.")
+            sys.exit(1)
+    else:
+        print("No action specified. Use --train to train a new model or --model to load an existing one.")
+        sys.exit(1)
+
+    # Test the trained model on a new FEN string
+    test_fen = "8/8/5p1p/2k3pb/6q1/6K1/2r5/1R6 w - - 2 74"
+    X_test = np.array([fen_to_input(test_fen)])
+
+    predicted_result = chess_nn.forward(X_test)
+
+    # Decode the predicted result
+    decoded_result = np.argmax(predicted_result)
+    print("FEN:", test_fen)
+    print("Predicted Result:", predicted_result)
+    print("Decoded Result:", decoded_result)
+    if decoded_result == 0:
+        print("Predicted Result: White wins")
+    elif decoded_result == 1:
+        print("Predicted Result: Black wins")
+    elif decoded_result == 2:
+        print("Predicted Result: Draw")
+    elif decoded_result == 3:
+        print("Predicted Result: Ongoing/Unfinished")
+    elif decoded_result == 4:
+        print("Predicted Result: Checkmate")

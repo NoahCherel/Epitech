@@ -1,0 +1,23 @@
+factorial 1:
+    pusharg 0
+    push 1
+    push eq
+    call
+    jmpiffalse 2
+    push 1
+    ret
+    push 1
+    pusharg 0
+    push sub
+    call
+    pushenv factorial
+    call
+    pusharg 0
+    push mul
+    call
+    ret
+main:
+    push 5
+    pushenv factorial
+    call
+    ret

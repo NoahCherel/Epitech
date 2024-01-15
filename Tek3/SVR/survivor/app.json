@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Survivor",
+    "slug": "survivor",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D1821"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D1821"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+//    "extra": {
+//      "eas": {
+//        "projectId": "97f7072e-dbf1-4cd0-9d22-d9f7bc9cc7fe"
+//      }
+//    },
+    "owner": "noah1005"
+  }
+}

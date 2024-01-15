@@ -1,0 +1,21 @@
+main:
+    push 2
+    push 3
+    pushenv add
+    call
+    push 2
+    pushenv mul
+    call
+    ret
+add 2:
+    pusharg 0
+    pusharg 1
+    push add
+    call
+    ret
+mul 2:
+    pusharg 1
+    pusharg 0
+    push mul
+    call
+    ret

@@ -1,0 +1,35 @@
+fibo 1:
+    pusharg 0
+    push 1
+    push less
+    call
+    jmpiffalse 2
+    push 0
+    ret
+    pusharg 0
+    push 2
+    push less
+    call
+    jmpiffalse 2
+    push 1
+    ret
+    push 1
+    pusharg 0
+    push sub
+    call
+    pushenv fibo
+    call
+    push 2
+    pusharg 0
+    push sub
+    call
+    pushenv fibo
+    call
+    push add
+    call
+    ret
+main:
+    push 10
+    pushenv fibo
+    call
+    ret

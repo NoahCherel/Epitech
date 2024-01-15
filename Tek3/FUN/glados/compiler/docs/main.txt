@@ -1,0 +1,99 @@
+<program>      ::= <pragma>*
+                 <import>*
+                 <data_declaration>*
+                 <function_declaration>*
+                 <main_function>
+
+<pragma>        ::= "# LANGUAGE" <pragma_name>
+
+<pragma_name>   ::= "LambdaCase"
+                 | "BlockArguments"
+
+<import>        ::= "import" <module_name>
+
+<module_name>  ::= <identifier>
+
+<data_declaration> ::= "data" <data_type> "=" <data_constructor> ("|" <data_constructor>)*
+
+<data_type>    ::= <identifier>
+
+<data_constructor> ::= <constructor_name> <constructor_args>?
+
+<constructor_name> ::= <identifier>
+
+<constructor_args> ::= <data_type> (" " <data_type>)*
+
+<function_declaration> ::= "data" <function_type> "=" <function_body>
+
+<function_type> ::= <identifier> (" " <data_type>)*
+
+<function_body> ::= <statement>+
+
+<statement>    ::= <assignment_statement>
+                 | <return_statement>
+
+<assignment_statement> ::= <identifier> "=" <assignment_value>
+
+<return_statement> ::= "return" <return_value>
+
+<assignment_value> ::= <identifier>
+                  | <literal_value>
+
+<return_value> ::= <identifier>
+               | <literal_value>
+
+<literal_value> ::= <string_literal>
+               | <int_literal>
+
+<string_literal> ::= '"' <string_content> '"'
+
+<string_content> ::= <character>+
+
+<int_literal>   ::= <digits>
+
+<function_call> ::= <function_name> "(" <argument_list> ")"
+
+<function_name> ::= <identifier>
+
+<argument_list> ::= <expression> ("," <expression>)*
+
+<expression> ::= <term> ("+" <term>)*
+
+<term> ::= <factor> ("*" <factor>)*
+
+<factor> ::= <identifier>
+         | <int_literal>
+
+<identifier>    ::= <letter> (<letter> | <digit>)*
+
+<letter>        ::= 'A' | 'B' | ... | 'Z' | 'a' | 'b' | ... | 'z'
+
+<digits>        ::= <digit>+
+
+<digit>         ::= '0' | '1' | ... | '9'
+
+<main_function> ::= "main" " = " "do" <main_body>
+
+<main_body>     ::= "args <- getArgs"
+               | "case args of" "{" <filename_case> "}"
+
+<filename_case> ::= "[" <filename_arg> "]" "->" "do" "{" <read_file_case> "}"
+
+<filename_arg> ::= <identifier>
+
+<read_file_case> ::= "input <- readFile" <filename_arg>
+                 | "let lines = splitLines input"
+                 | "let function = parseFunction lines"
+                 | "let addFunc = generateAddFunctionIfNeeded" <function_argument>
+                 | "let subFunc = generateSubFunctionIfNeeded" <function_argument>
+                 | "let mulFunc = generateMulFunctionIfNeeded" <function_argument>
+                 | "let divFunc = generateDivFunctionIfNeeded" <function_argument>
+                 | "let functions = [" <function_list> "]"
+                 | "let result = unlines" <compile_function>
+                 | "putStrLn result"
+
+<function_argument> ::= "(" "case function of Function _ stmts -> stmts" ")"
+
+<function_list> ::= <function_call> ("," <function_call>)*
+
+<compile_function> ::= "compile function : filter (not . null) functions" | <function_argument>

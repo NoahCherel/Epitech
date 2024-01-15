@@ -1,0 +1,12 @@
+multiplicationFunction 2:
+    pusharg 0
+    pusharg 1
+    push mul
+    call
+    ret
+main:
+    push 6
+    push 7
+    pushenv multiplicationFunction
+    call
+    ret

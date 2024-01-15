@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+
+import sys
+import numpy as np
+import os
+
+def help():
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
+        print("""USAGE
+    ./game_of_graphs [--links fr p1 p2 | --plots fr cr n]
+    DESCRIPTION
+        fr  file containing friendship relations between people
+        p1  name of someone in the friendships file
+        p2  name of someone in the friendships file
+        cr  file containing conspiracies intentions
+        n   maximum length of friendship paths""")
+        return 0
+    return 1
+
+def error():
+    if len(sys.argv) != 5:
+        return 84
+    if sys.argv[1] == "--plots":
+        try:
+            int(sys.argv[4])
+        except:
+            return 84
+        if os.path.isfile(sys.argv[2]) and os.path.getsize(sys.argv[2]) > 0:
+            pass
+        else:
+            return 84
+        if os.path.isfile(sys.argv[3]) and os.path.getsize(sys.argv[3]) > 0:
+            pass
+        else:
+            return 84
+    if sys.argv[1] == "--links":
+        if os.path.isfile(sys.argv[2]) and os.path.getsize(sys.argv[2]) > 0:
+            pass
+        else:
+            return 84
+    return 0
+
+def create_node(filename):
+    node = set()
+    with open(filename, "r") as file:
+        for line in file:
+            is_index = line.find(" is ")
+            with_index = line.find(" with ")
+            if is_index != -1 and with_index != -1:
+                name_before_is = line[:is_index].strip()
+                name_after_with = line[with_index + 6:].strip()
+                node.add(name_before_is)
+                node.add(name_after_with)
+            else:
+                return 84
+    sorted_node = sorted(node)
+    return sorted_node
+
+def create_links(filename):
+    list_of_lists = []
+    with open(filename, "r") as file:
+        for line in file:
+            line = line.replace(" against ", " with ")
+            is_index = line.find(" is ")
+            with_index = line.find(" with ")
+            if is_index != -1 and with_index != -1:
+                name_before_is = line[:is_index].strip()
+                name_after_with = line[with_index + 6:].strip()
+                words_between = line[is_index + 3:with_index].strip()
+                extracted_elements = [name_before_is, name_after_with, words_between]
+                list_of_lists.append(extracted_elements)
+    return list_of_lists
+
+def dict_plots(filename):
+    data_dict = {}
+    with open(filename, "r") as file:
+        for line in file:
+            is_index = line.find(" is ")
+            with_index = line.find(" against ")
+            if is_index != -1 and with_index != -1:
+                name_before_is = line[:is_index].strip()
+                name_after_with = line[with_index + 9:].strip()
+                if name_before_is in data_dict:
+                    data_dict[name_before_is].append(name_after_with)
+                else:
+                    data_dict[name_before_is] = [name_after_with]
+    return data_dict
+
+def create_adjacency_matrix(node, list_of_lists):
+    node_to_index = {name: index for index, name in enumerate(node)}
+    num_nodes = len(node)
+    adjacency_matrix = [[0] * num_nodes for _ in range(num_nodes)]
+    for elements in list_of_lists:
+        name_before_is, name_after_with, _ = elements
+        if name_before_is in node_to_index and name_after_with in node_to_index:
+            index_before = node_to_index[name_before_is]
+            index_after = node_to_index[name_after_with]
+            adjacency_matrix[index_before][index_after] = 1
+            adjacency_matrix[index_after][index_before] = 1
+    return adjacency_matrix
+
+def create_matrix_plots(node, data_dict):
+    node_to_index = {name: index for index, name in enumerate(node)}
+    num_nodes = len(node)
+    adjacency_matrix = [[0] * num_nodes for _ in range(num_nodes)]
+    for name_before_is, names_after_with_list in data_dict.items():
+        if name_before_is in node_to_index:
+            index_before = node_to_index[name_before_is]
+            for name_after_with in names_after_with_list:
+                if name_after_with in node_to_index:
+                    index_after = node_to_index[name_after_with]
+                    adjacency_matrix[index_before][index_after] = 1
+    return adjacency_matrix
+
+def floyd_warshall(adjacency_matrix):
+    num_nodes = len(adjacency_matrix)
+    distance_matrix = [[float('inf')] * num_nodes for _ in range(num_nodes)]
+    for i in range(num_nodes):
+        for j in range(num_nodes):
+            if i == j:
+                distance_matrix[i][j] = 0
+            elif adjacency_matrix[i][j] == 1:
+                distance_matrix[i][j] = 1
+    for k in range(num_nodes):
+        for i in range(num_nodes):
+            for j in range(num_nodes):
+                distance_matrix[i][j] = min(distance_matrix[i][j], distance_matrix[i][k] + distance_matrix[k][j])
+    return distance_matrix
+
+def limit_distance_matrix(distance_matrix, limit):
+    num_nodes = len(distance_matrix)
+    for i in range(num_nodes):
+        for j in range(num_nodes):
+            if distance_matrix[i][j] > limit:
+                distance_matrix[i][j] = 0
+    return distance_matrix
+
+def find_conspi(matrix_friends, id_node, matrix_plots, node):
+    for a in range(len(matrix_plots)):
+        if matrix_plots[a][id_node] == 1:
+            ##print(id_node, a)
+            ##print(matrix_friends[id_node][a], (node[a]))
+            id_node = a
+            find_conspi(matrix_friends, id_node, matrix_plots, node)
+
+def conspiracies(matrix_friends, matrix_plots, node, limit):
+    for i in range(len(matrix_plots)):
+        if matrix_plots[i][0] == 1:
+            print(node[i])
+            find_conspi(matrix_friends, i, matrix_plots, node)
+            print("\n\n")
+
+def links(friend, name1, name2):
+    node = create_node(friend)
+    if node == 84:
+        return 84
+    if name1 not in node or name2 not in node:
+        print(f"Degree of separation between {name1} and {name2}: -1")
+        return
+    if name1 == name2:
+        print(f"Degree of separation between {name1} and {name2}: 0")
+        return
+
+    adjacency_matrix = create_adjacency_matrix(node, create_links(friend))
+    distance_matrix = floyd_warshall(adjacency_matrix)
+    limited_distance_matrix = limit_distance_matrix(distance_matrix, 10000)
+
+    index_name1 = node.index(name1)
+    index_name2 = node.index(name2)
+
+    if limited_distance_matrix[index_name1][index_name2] == 0:
+        print(f"There is no path of length {10000} or shorter between {name1} and {name2}.")
+    else:
+        print(f"Degree of separation between {name1} and {name2}: {limited_distance_matrix[index_name1][index_name2]}")
+
+def find_conspirators(list_plots):
+    # This work only for the 1st example
+
+    # Exemple Daenerys Targaryen': ['Cersei Lannister'], 'Tywin Lannister': ['Cersei Lannister', 'Daenerys Targaryen'], 'Sansa Stark': ['Theon Greyjoy', 'Cersei Lannister'], 'The Mountain': ['Jon Snow'], 'Jon Snow': ['Tywin Lannister', 'Theon Greyjoy'], 'Theon Greyjoy': ['Sansa Stark']
+    # Find the conspirators who plots against the queen(Cersei Lannister) and store them
+    conspi = []
+    for name, plots in list_plots.items():
+        if "Cersei Lannister" in plots:
+            conspi.append(name)
+    # Once you found them, find people who conspire against them and print like this :
+    # exemple : Theon Greyjoy -> Sansa Stark
+    # Make sure to print the list sorted alphabetically
+
+    conspi.sort(reverse=True)
+    nb_conspi = len(conspi)
+    for name in conspi:
+        for name2, plots in list_plots.items():
+            if name in plots:
+                print(f"{name2} -> {name}")
+                nb_conspi -= 1
+
+    # If Nobody conspires against the queen, print "The Crown is safe" "lse print "There is only one way out: treason !" if there is a conspiracy against the queen and nobody conspires against the conspirators
+    print("\nResult:")
+    if nb_conspi == 0:
+        print("The Crown is safe !")
+    else:
+        print("There is only one way out: treason !")
+
+
+def plots(friend, plots, limit):
+    node = create_node(friend)
+    if node == 84:
+        return 84
+    print("Names:")
+    for j in node:
+        print(j)
+    print("\nRelationships:")
+    list_of_lists = create_links(friend)
+    adjacency_matrix = create_adjacency_matrix(node, list_of_lists)
+    distance_matrix = floyd_warshall(adjacency_matrix)
+    limited_distance_matrix = limit_distance_matrix(distance_matrix, limit)
+    for row in limited_distance_matrix:
+        print(' '.join(map(str, row)))
+    print("\nConspiracies:")
+    list_plots = dict_plots(plots)
+    #print(list_plots)
+    find_conspirators(list_plots)
+
+    #matrix_plots = create_matrix_plots(node, list_plots)
+    #print(matrix_plots)
+    #for x in matrix_plots:
+    #    print(*x)
+    #final_conspiracies = conspiracies(limited_distance_matrix, matrix_plots, node, limit)
+
+def main():
+    if (help() == 0):
+        sys.exit(0)
+    if (error() == 84):
+        sys.exit(84)
+    if sys.argv[1] == "--links" and len(sys.argv) == 5:
+        friends_file_name = sys.argv[2]
+        name1 = sys.argv[3]
+        name2 = sys.argv[4]
+        result = links(friends_file_name, name1, name2)
+        if result == 84:
+            sys.exit(84)
+    if (sys.argv[1] == "--plots"):
+        friends_file_name = sys.argv[2]
+        plots_file_name = sys.argv[3]
+        limit_relationship = int(sys.argv[4])
+        result = plots(friends_file_name, plots_file_name, limit_relationship)
+        if result == 84:
+            sys.exit(84)
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()

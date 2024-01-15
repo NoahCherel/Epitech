@@ -1,0 +1,36 @@
+<program>        ::= module Main where <import-statements> <main-function> <setup-environment> <execute-code>
+
+<import-statements> ::= import System.Environment
+                     | import DataSet
+                     | import VirtualMachine
+                     | import Utils
+                     | import Parser
+                     | ε (empty)
+
+<main-function>  ::= main :: IO ()
+                 ::= main = do <main-body>
+
+<main-body>      ::= args <- getArgs
+                 ::= case args of
+                       [filename] -> do <handle-file-result>
+                       _ -> putStrLn "Usage: ./glados_vm [filename]."
+
+<handle-file-result> ::= result <- withFileHandling filename
+                   ::= case result of
+                       Left errorValue -> putStrLn errorValue
+                       Right content -> do <execute-content>
+
+<execute-content> ::= case executeCode (splitLines content) of
+                      Left errorValue -> putStrLn errorValue
+                      Right result -> writeResultToFile (filename ++ ".res") result
+
+<setup-environment> ::= setupEnvironment :: [String] -> Environment -> Environment
+                  ::= setupEnvironment [] environment = environment
+                  ::= setupEnvironment (x:xs) environment = case parseFunctionDefinition x of
+                        Right (name, nb) -> setupEnvironment xs (environment ++ [(name, (nb, bytecodesAssembler xs []))])
+                        Left _ -> setupEnvironment xs environment
+
+<execute-code>   ::= executeCode :: [String] -> Either String NewLangVal
+                ::= executeCode code = case checkMain code of
+                      Right main -> interpretBytecodes [] (setupEnvironment code []) [] (bytecodesAssembler main []) []
+                      Left errorValue -> error errorValue

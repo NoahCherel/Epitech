@@ -1,0 +1,1 @@
+(string-append "Hello, " "world!")

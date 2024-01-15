@@ -1,0 +1,6 @@
+main:
+    push 12
+    push 2
+    push sub
+    call
+    ret

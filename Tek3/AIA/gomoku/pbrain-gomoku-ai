@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+
+import sys
+from random import choice
+import random
+from copy import deepcopy
+
+PosX, PosY = 0, 1
+
+class Gomoku:
+    def __init__(self):
+        self.Empty = "-"
+        self.Player = "p"
+        self.AI = "a"
+
+    def TickACase(self, x, y, isPlayer):
+        if isPlayer:
+            self.gameBoard[y][x] = self.Player
+        else:
+            self.gameBoard[y][x] = self.AI
+
+class AI:
+    def __init__(self):
+        self.gomoku = Gomoku()
+
+    def LauchAI(self):
+            while True:
+                input_str = receive_message()
+                command = input_str.split(" ")[0]
+                args = input_str.split(" ")[1:]
+
+                if command == "START":
+                    boardSize = int(args[0])
+                    if boardSize == 0:
+                        send_message("ERROR")
+                        break
+                    self.gomoku.gameBoard = [[self.gomoku.Empty for _ in range(boardSize)] for _ in range(boardSize)]
+                    self.gomoku.size = (boardSize, boardSize)
+                    send_message("OK")
+                
+                elif command == "TURN":
+                    posx, posy = args[0].split(",")
+                    self.gomoku.TickACase(int(posx), int(posy), True)
+                    
+                    new_pos = self.runAlgo()
+                    send_message(new_pos)
+                
+                elif command == "BEGIN":
+                    posX = self.gomoku.size[PosX] // 2
+                    posY = self.gomoku.size[PosY] // 2
+                    posX = random.randint(posX - 1, posX + 1)
+                    posY = random.randint(posX - 1, posX + 1)
+                    self.gomoku.TickACase(posX, posY, False)
+                    send_message(f"{posX},{posY}")
+
+                elif command == "BOARD":
+                    while True:
+                        input_str = receive_message()
+                        if input_str == "DONE":
+                            break
+                        posx, posy, enemy = input_str.split(",")
+                        self.gomoku.TickACase(int(posx), int(posy), enemy == "2")
+                    send_message(self.runAlgo())
+
+                elif command == "PRINT":
+                    for line in self.gomoku.gameBoard:
+                            print(line)
+
+                elif command == "END":
+                    break
+
+                else:
+                    pass
+
+    def runAlgo(self, fake=False):
+        posX, posY = self.Algo(self.gomoku)
+
+        if not fake:
+            self.gomoku.TickACase(posX, posY, False)
+        
+        return f"{posX},{posY}"
+
+    @staticmethod
+    def Algo(ai):
+        iaEvaluator = deepcopy(ai)
+        for position in AI.getMoveList(iaEvaluator):
+            copy_goban = deepcopy(ai)
+            copy_goban.TickACase(position[PosX], position[PosY], False)
+            iaEvaluator.gameBoard[position[PosY]][position[PosX]] = AI.scoreEvaluator(copy_goban, position)
+        return AI.getBestScoreMove(iaEvaluator)
+
+    @staticmethod
+    def getMoveList(ai):
+        return [(x, y) for y in range(ai.size[PosY]) for x in range(ai.size[PosX]) if ai.gameBoard[y][x] == ai.Empty and AI.checkPos(ai, (x, y))]
+
+    @staticmethod
+    def checkPos(ai, position, distance=1):
+        minXInBoard = max(position[PosX] - distance, 0)
+        minYInBoard = max(position[PosY] - distance, 0)
+        maxXInBoard = min(position[PosX] + distance, ai.size[PosX] - 1)
+        maxYInBoard = min(position[PosY] + distance, ai.size[PosY] - 1)
+        partial_board = [line[minXInBoard:maxXInBoard + 1] for line in ai.gameBoard[minYInBoard:maxYInBoard + 1]]
+        for row in partial_board:
+            if ai.AI in row or ai.Player in row:
+                return True
+        return False
+
+    def scoreEvaluator(iaEvaluator, position):
+        patterns = {
+            "aaaaa": 10000000,
+            "ppppa": 410000,
+            "pppap": 410000,
+            "ppapp": 410000,
+            "pappp": 410000,
+            "apppp": 410000,
+            "-pppa": 150000,
+            "appp-": 150000,
+            "ppap-": 110000,
+            "-papp": 110000,
+            "papp-": 110000,
+            "-ppap": 110000,
+            "-aaaa": 100000,
+            "aaaa-": 100000,
+            "aaa-a": 49000,
+            "a-aaa": 49000,
+            "aa-aa": 49000,
+            "-aaa-": 1800,
+            "a-a-a": 1000,
+            "--aaa": 1000,
+            "aaa--": 1000,
+            "aaa--": 700,
+            "--aaa": 700,
+            "paaa-": 500,
+            "-aaap": 500,
+            "aa---": 10,
+            "-aa--": 10,
+            "--aa-": 10,
+            "---aa": 10,
+            "aaapa": -2000,
+            "apaaa": -2000,
+        }
+
+        return AI.patternFinder(iaEvaluator, position, patterns)
+
+    def patternFinder(ai, position, patterns):
+        def get_line(start, end, step, axis):
+            indices = range(start, end, step)
+            if axis == PosX:
+                return "".join(ai.gameBoard[position[PosY]][i] for i in indices if 0 <= i < ai.size[PosX])
+            elif axis == PosY:
+                return "".join(ai.gameBoard[i][position[PosX]] for i in indices if 0 <= i < ai.size[PosY])
+            elif axis == "diagonal1":
+                return "".join(ai.gameBoard[position[PosY] + i][position[PosX] + i] for i in indices if 0 <= position[PosY] + i < ai.size[PosY] and 0 <= position[PosX] + i < ai.size[PosX])
+            elif axis == "diagonal2":
+                return "".join(ai.gameBoard[position[PosY] - i][position[PosX] + i] for i in indices if 0 <= position[PosY] - i < ai.size[PosY] and 0 <= position[PosX] + i < ai.size[PosX])
+
+        minXInBoard = max(position[PosX] - 4, 0)
+        minYInBoard = max(position[PosY] - 4, 0)
+        maxXInBoard = min(position[PosX] + 5, ai.size[PosX] - 1)
+        maxYInBoard = min(position[PosY] + 5, ai.size[PosY] - 1)
+
+        slashRight = get_line(minYInBoard, maxYInBoard, 1, PosY)
+        slashLeft = get_line(maxYInBoard - 1, minYInBoard - 1, -1, PosY)
+        row = get_line(minXInBoard, maxXInBoard, 1, PosX)
+        col = get_line(minYInBoard, maxYInBoard, 1, PosY)
+        diagonal1 = get_line(-4, 5, 1, "diagonal1")
+        diagonal2 = get_line(-4, 5, 1, "diagonal2")
+
+        lines = [slashRight, slashLeft, row, col, diagonal1, diagonal2]
+        total_value = sum(value for line in lines for pattern, value in patterns.items() if pattern in line)
+
+        return total_value
+
+    def getBestScoreMove (iaEvaluator):
+        gomokuBoard = [iaEvaluator.AI, iaEvaluator.Player, iaEvaluator.Empty]
+        
+        bestScore = max(
+            int(cell) if cell not in gomokuBoard else -100000
+            for row in iaEvaluator.gameBoard
+            for cell in row
+        )
+        
+        bestMoves = [
+            (x, y)
+            for y, row in enumerate(iaEvaluator.gameBoard)
+            for x, cell in enumerate(row)
+            if cell not in gomokuBoard and int(cell) == bestScore
+        ]
+        return choice(bestMoves)
+
+
+def send_message(message):
+    sys.stdout.write(message + '\n')
+    sys.stdout.flush()
+
+def receive_message():
+    return sys.stdin.readline().strip()
+
+def main():
+    a = AI()
+    a.LauchAI()
+
+if __name__ == "__main__":
+    main()

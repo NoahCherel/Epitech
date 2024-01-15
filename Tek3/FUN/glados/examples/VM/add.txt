@@ -1,0 +1,12 @@
+add 2:
+    pusharg 0
+    pusharg 1
+    push add
+    call
+    ret
+main:
+    push 3
+    push 4
+    pushenv add
+    call
+    ret

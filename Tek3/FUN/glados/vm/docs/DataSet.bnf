@@ -1,0 +1,25 @@
+<DataSet> ::= "module DataSet where" <DataPile> <Bytecodes> <Parameters> <Environment> <NamedValues>
+<DataPile> ::= "type DataPile = [" <NewLangVal> {"," <NewLangVal>} "]"
+<Bytecodes> ::= "type Bytecodes = [" <Operation> {"," <Operation>} "]"
+<Parameters> ::= "type Parameters = [" <NewLangVal> {"," <NewLangVal>} "]"
+<Environment> ::= "type Environment = [" <EnvironmentItem> {"," <EnvironmentItem>} "]"
+<EnvironmentItem> ::= "(" <String> "," "(" <Int> "," <Bytecodes> ")"
+<NamedValues> ::= "type NamedValues = [" <NamedValue> {"," <NamedValue>} "]"
+<NamedValue> ::= "(" <String> "," <NewLangVal> ")"
+<Operation> ::= <PushOperation> | <CallOperation> | <ConditionalJumpOperation> | <PushArgumentOperation> | <PushEnvironmentOperation> | <PushVariableOperation> | <ModifyVariableOperation> | <ReturnOperation>
+<PushOperation> ::= "PushOperation" <NewLangVal>
+<CallOperation> ::= "CallOperation"
+<ConditionalJumpOperation> ::= "ConditionalJumpOperation" <Int>
+<PushArgumentOperation> ::= "PushArgumentOperation" <Int>
+<PushEnvironmentOperation> ::= "PushEnvironmentOperation" <String>
+<PushVariableOperation> ::= "PushVariableOperation" <String>
+<ModifyVariableOperation> ::= "ModifyVariableOperation" <String> <NewLangVal>
+<ReturnOperation> ::= "ReturnOperation"
+<NewLangVal> ::= <IntegerValue> | <TextValue> | <BoolValue> | <BuiltInFunction> | <CustomFunction>
+<IntegerValue> ::= "IntegerValue" <Int>
+<TextValue> ::= "TextValue" <String>
+<BoolValue> ::= "BoolValue" <Bool>
+<BuiltInFunction> ::= "BuiltInFunction" <NewLangFunc>
+<CustomFunction> ::= "CustomFunction" <String> <Int> <Bytecodes>
+<NewLangFunc> ::= <AddFunction> | <SubFunction> | <MulFunction> | <DivFunction> | <EqqFunction> | <LessFunction> | <NotFunction>
+<NotFunction> ::= "NotFunction" <NewLangFunc>

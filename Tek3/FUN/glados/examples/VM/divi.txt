@@ -1,0 +1,12 @@
+divisionFunction 2:
+    pusharg 0
+    pusharg 1
+    push div
+    call
+    ret
+main:
+    push 20
+    push 4
+    pushenv divisionFunction
+    call
+    ret

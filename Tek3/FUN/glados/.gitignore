@@ -1,0 +1,31 @@
+# Stack files
+.stack-work/
+.stack-work.yaml
+
+# Local build artifacts
+dist/
+
+# Haddock documentation
+doc/
+
+# Compiled executables
+*.hi
+*.o
+glados
+glados_compiler
+glados_vm
+compiler/app/Main
+vm/app/Main
+interpreter/app/Main
+
+# VM result files
+*.res
+
+# Cabal files
+*.cabal
+cabal.project.local
+cabal.project.local~
+cabal.project~
+
+# GHC environment files
+*.ghc.environment.*

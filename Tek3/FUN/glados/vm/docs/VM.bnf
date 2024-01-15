@@ -1,0 +1,103 @@
+<module> ::= module VirtualMachine where <imports> <functions> end
+
+<imports> ::= import <module_name>
+
+<module_name> ::= Identifier
+
+<functions> ::= <function_declaration> <functions>
+             | ε
+
+<function_declaration> ::= <function_name> :: <function_signature> = <function_body>
+
+<function_name> ::= Identifier
+
+<function_signature> ::= <parameter_list> -> <return_type>
+
+<parameter_list> ::= <parameter> <more_parameters>
+                 | ε
+
+<parameter> ::= Identifier
+
+<more_parameters> ::= , <parameter_list>
+
+<return_type> ::= <type>
+
+<type> ::= DataPile
+        | Either String DataPile
+        | Parameters
+        | NamedValues
+        | Environment
+        | NewLangVal
+        | NewLangFunc
+        | Bytecodes
+
+<function_body> ::= <function_cases>
+
+<function_cases> ::= <function_case> <function_cases>
+                | ε
+
+<function_case> ::= <function_name> <parameters> = <function_expression>
+
+<parameters> ::= ( <parameter_list> )
+
+<function_expression> ::= <function_call>
+                   | <function_operations>
+                   | <function_error>
+
+<function_call> ::= <function_name> <arguments>
+
+<arguments> ::= ( <data_pile> )
+
+<data_pile> ::= <data_value> : <data_pile>
+            | ε
+
+<data_value> ::= IntegerValue <integer_value>
+             | BoolValue <bool_value>
+             | TextValue <text_value>
+
+<integer_value> ::= Integer
+
+<bool_value> ::= True
+             | False
+
+<text_value> ::= String
+
+<function_operations> ::= <built_in_function> <data_pile>
+                   | <custom_function> <data_pile>
+
+<built_in_function> ::= AddFunction
+                   | SubFunction
+                   | MulFunction
+                   | DivFunction
+                   | EqqFunction
+                   | LessFunction
+                   | NotFunction <new_lang_func>
+
+<new_lang_func> ::= EqqFunction
+               | LessFunction
+
+<custom_function> ::= CustomFunction <arity> <bytecodes>
+
+<arity> ::= Integer
+
+<bytecodes> ::= <bytecode> <more_bytecodes>
+            | ε
+
+<bytecode> ::= PushOperation <data_value>
+           | PushArgumentOperation <index>
+           | PushEnvironmentOperation <index>
+           | PushVariableOperation <index>
+           | ModifyVariableOperation <index> <data_value>
+           | CallOperation
+           | ConditionalJumpOperation <index>
+           | ReturnOperation
+
+<index> ::= Integer
+
+<function_error> ::= error <error_message>
+
+<error_message> ::= String
+
+<more_bytecodes> ::= <bytecodes>
+
+<module_name> ::= Identifier
